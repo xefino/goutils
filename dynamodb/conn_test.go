@@ -97,7 +97,9 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 
 			// Finally, verify the resulting error
 			casted := err.(*Error)
-			Expect(count).Should(Equal(retries))
+			Expect(count).Should(And(
+				BeNumerically("<=", retries+1),
+				BeNumerically(">=", retries-1)))
 			Expect(err).Should(HaveOccurred())
 			Expect(casted.TableName).Should(Equal("TEST_TABLE"))
 			verifier(casted.GError)
