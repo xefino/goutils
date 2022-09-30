@@ -24,8 +24,8 @@ type S3Connection struct {
 	logger *utils.Logger
 }
 
-// S3ConnectionFromSession creates a new S3 connection from an AWS session and a logger
-func S3ConnectionFromSession(cfg aws.Config, logger *utils.Logger) *S3Connection {
+// NewS3Connection creates a new S3 connection from an AWS session and a logger
+func NewS3Connection(cfg aws.Config, logger *utils.Logger) *S3Connection {
 	return &S3Connection{
 		inner:  s3.NewFromConfig(cfg),
 		logger: logger,
