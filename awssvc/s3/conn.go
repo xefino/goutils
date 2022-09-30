@@ -14,8 +14,8 @@ import (
 
 // IS3Connection describes the functionality encapsulated in an S3 connection
 type IS3Connection interface {
-	DownloadToStream(bucket string, key string) (io.Writer, error)
-	UploadFromStream(bucket string, key string, body io.Reader) error
+	DownloadToStream(ctx context.Context, bucket string, key string) (io.Writer, error)
+	UploadFromStream(ctx context.Context, bucket string, key string, body io.Reader) error
 }
 
 // S3Connection wraps functionality necessary to communicate with AWS S3
