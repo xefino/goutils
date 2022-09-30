@@ -12,7 +12,7 @@ import (
 	"github.com/aws/smithy-go"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/xefino/goutils/dynamodb/testing"
+	"github.com/xefino/goutils/awssvc/dynamodb/testing"
 	"github.com/xefino/goutils/testutils"
 	"github.com/xefino/goutils/utils"
 )
