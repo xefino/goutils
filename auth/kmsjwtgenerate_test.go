@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 	"fmt"
-	"testing"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/kms"
@@ -14,13 +13,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
-
-// Create a new test runner we'll use to test all the
-// modules in the auth package
-func TestAuth(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Auth Suite")
-}
 
 var _ = Describe("KMS JWT Generate Tests", func() {
 

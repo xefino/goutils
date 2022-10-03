@@ -21,6 +21,7 @@ require (
 	github.com/matelang/jwt-go-aws-kms/v2 v2.0.0-20220929133638-844cde3dbeea
 	github.com/onsi/ginkgo/v2 v2.1.4
 	github.com/onsi/gomega v1.20.0
+	golang.org/x/crypto v0.0.0-20220926161630-eccd6366d1be
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
 )
 
