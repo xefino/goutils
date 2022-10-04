@@ -46,4 +46,23 @@ var _ = Describe("Strings Tests", func() {
 		// Verify the result
 		Expect(result).Should(BeFalse())
 	})
+
+	// Test that, if an empty list is provided to ModifyAndJoin, then an empty string will be returned
+	It("ModifyAndJoin - No entries - Empty string returned", func() {
+		result := ModifyAndJoin[string](func(raw string) string { return "A" + raw + "A" }, ",")
+		Expect(result).Should(BeEmpty())
+	})
+
+	// Test that, if a non-empty list is provided to ModifyAndJoin, then each element will be modified and
+	// the resulting list will be joined together using the separator
+	It("ModifyAndJoin - Contains elements - Modified string returned", func() {
+		result := ModifyAndJoin(func(raw string) string { return "A" + raw + "A" }, ",", "herp", "derp")
+		Expect(result).Should(Equal("AherpA,AderpA"))
+	})
+
+	// Test that Quote works as expected
+	It("Quote - Works", func() {
+		result := Quote("A", "derp")
+		Expect(result).Should(Equal("derpAderp"))
+	})
 })

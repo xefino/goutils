@@ -68,4 +68,5 @@ var (
 	UpdatePrimaryRegion                 = Action("kms:UpdatePrimaryRegion")
 	Verify                              = Action("kms:Verify")
 	VerifyMac                           = Action("kms:VerifyMac")
+	KmsAll                              = Action("kms:*")
 )

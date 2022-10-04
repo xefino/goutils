@@ -33,8 +33,10 @@ func (p Principals) MarshalJSON() ([]byte, error) {
 	var inner string
 	if len(p) > 1 {
 		inner = marshal(p...)
-	} else {
+	} else if len(p) == 1 {
 		inner = strings.Quote(p[0], "\"")
+	} else {
+		return nil, fmt.Errorf("Principal must contain at least one element")
 	}
 
 	// Next, create the principal block and return it
@@ -43,7 +45,7 @@ func (p Principals) MarshalJSON() ([]byte, error) {
 
 // Actions describes a list of actions that may or may not be taken by principals with regard to the
 // resources described in a policy statement
-type Actions []string
+type Actions []Action
 
 // MarshalJSON converts an Actions collection to JSON
 func (a Actions) MarshalJSON() ([]byte, error) {
@@ -52,8 +54,10 @@ func (a Actions) MarshalJSON() ([]byte, error) {
 	var inner string
 	if len(a) > 1 {
 		inner = marshal(a...)
-	} else {
+	} else if len(a) == 1 {
 		inner = strings.Quote(a[0], "\"")
+	} else {
+		return nil, fmt.Errorf("Action must contain at least one element")
 	}
 
 	// Next, create the action block and return it
@@ -70,14 +74,17 @@ func (r Resources) MarshalJSON() ([]byte, error) {
 	var inner string
 	if len(r) > 1 {
 		inner = marshal(r...)
-	} else {
+	} else if len(r) == 1 {
 		inner = strings.Quote(r[0], "\"")
+	} else {
+		return nil, fmt.Errorf("Resource must contain at least one element")
 	}
 
 	// Next, create the action block and return it
 	return []byte(inner), nil
 }
 
-func marshal(items ...string) string {
+// Helper function that converts a list of items to a JSON-string
+func marshal[S ~string](items ...S) string {
 	return "[" + strings.ModifyAndJoin(func(item string) string { return strings.Quote(item, "\"") }, ",", items...) + "]"
 }
