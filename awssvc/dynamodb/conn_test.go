@@ -12,7 +12,7 @@ import (
 	"github.com/aws/smithy-go"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/xefino/goutils/awssvc/dynamodb/testing"
+	"github.com/xefino/goutils/awssvc/testing"
 	"github.com/xefino/goutils/testutils"
 	"github.com/xefino/goutils/utils"
 )
@@ -22,7 +22,7 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 	// Ensure that the AWS config is created before each test; this could be set as a global variable
 	var cfg aws.Config
 	BeforeAll(func() {
-		cfg = testing.TestDynamoDBConfig(context.Background(), "us-east-1", 9000)
+		cfg = testing.TestAWSConfig(context.Background(), "us-east-1", 9000)
 	})
 
 	// Create our test table definition that we'll use for all module tests

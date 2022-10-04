@@ -46,7 +46,7 @@ func (conn *KMSConnection) CreateKey(ctx context.Context, spec types.KeySpec, us
 	// Now, attempt to create the key from the input; if this fails then return an error
 	out, err := conn.inner.CreateKey(ctx, &input)
 	if err != nil {
-		return nil, conn.logger.Error(err, "Failed to create %s (%s) key in KMS")
+		return nil, conn.logger.Error(err, "Failed to create %s (%s) key in KMS", spec, usage)
 	}
 
 	// Finally, return the metadata of the key we created
