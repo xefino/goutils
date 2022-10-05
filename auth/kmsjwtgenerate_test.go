@@ -12,6 +12,10 @@ import (
 	"github.com/matelang/jwt-go-aws-kms/v2/jwtkms"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	lkms "github.com/xefino/goutils/awssvc/kms"
+	"github.com/xefino/goutils/awssvc/policy"
+	"github.com/xefino/goutils/awssvc/testing"
+	"github.com/xefino/goutils/utils"
 )
 
 var _ = Describe("KMS JWT Generate Tests", func() {
@@ -20,10 +24,10 @@ var _ = Describe("KMS JWT Generate Tests", func() {
 	It("Token - SignedString fails - Error", func() {
 
 		// First, create our mock KMS client
-		client := mockKMSClient{ShouldFail: true}
+		client := new(mockKMSClient)
 
 		// Next, create a new KMS JWT access generator
-		generate := NewKMSJWTAccessGenerate(&client, "TEST_KEY_ID", jwtkms.SigningMethodECDSA512)
+		generate := NewKMSJWTAccessGenerate(client, "TEST_KEY_ID", jwtkms.SigningMethodECDSA512)
 
 		// Now, create our claims data, including the client, user ID and creation time
 		data := generateToken()
@@ -38,39 +42,67 @@ var _ = Describe("KMS JWT Generate Tests", func() {
 		Expect(err.Error()).Should(Equal("Sign failed"))
 	})
 
-	// This code needs additional testing but I'm not sure how to build around the Sign function so
-	// that it performs a decent facsimile of the actual functionality when it's called
+	// Tests that calling the Token function will return an access token and refresh token if no error occurs
+	// when the Token function is called
+	It("Token - No failures - Tokens returned", func() {
+
+		// First, generate the AWS config
+		cfg := testing.TestAWSConfig(context.Background(), "eu-west-2", 8080)
+
+		// Next, create our test KMS connection
+		logger := utils.NewLogger("testd", "test")
+		logger.Discard()
+		conn := lkms.NewConnection(cfg, logger)
+
+		// Now, generate the policy for the key we want to use for testing
+		policy := policy.Policy{
+			Version: "2012-10-17",
+			ID:      "test-key",
+			Statements: []*policy.Statement{
+				{
+					ID:            "test-failure",
+					Effect:        policy.Allow,
+					PrincipalArns: []string{"arn:aws:kms:eu-west-2:111122223333:root"},
+					ActionArns:    policy.Actions{policy.KmsAll},
+					ResourceArns:  []string{"*"},
+				},
+			},
+		}
+
+		// Create the KMS key from the policy; this should not fail
+		metadata, err := conn.CreateKey(context.Background(), types.KeySpecEccNistP521,
+			types.KeyUsageTypeSignVerify, &policy, true)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		// Finally, attempt to use the key to generate our access token and refresh token; this should not fail
+		generate := NewKMSJWTAccessGenerate(kms.NewFromConfig(cfg), *metadata.KeyId, jwtkms.SigningMethodECDSA512)
+		accessToken, refreshToken, err := generate.Token(context.Background(), generateToken(), true)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		// Verify the access token and refresh token
+		Expect(accessToken).ShouldNot(BeEmpty())
+		Expect(refreshToken).ShouldNot(BeEmpty())
+	})
 })
 
 // Helper type that we'll use to test our KMS client code
 type mockKMSClient struct {
 	jwtkms.KMSClient
-	ShouldFail bool
 }
 
 // Mock out the function to sign a JWT, verifying the input options in the process
 func (client *mockKMSClient) Sign(ctx context.Context, in *kms.SignInput,
 	optFns ...func(*kms.Options)) (*kms.SignOutput, error) {
 
-	// First, verify the input fields and options
+	// Verify the input fields and options
 	Expect(*in.KeyId).Should(Equal("TEST_KEY_ID"))
 	Expect(in.Message).ShouldNot(BeEmpty())
 	Expect(in.MessageType).Should(Equal(types.MessageTypeDigest))
 	Expect(in.SigningAlgorithm).Should(Equal(types.SigningAlgorithmSpecEcdsaSha512))
 	Expect(optFns).Should(BeEmpty())
 
-	// Next, if we want to test around Sign failure then return an error
-	if client.ShouldFail {
-		return nil, fmt.Errorf("Sign failed")
-	}
-
-	// Finally, return a test sign output
-	data := append(in.Message, []byte(".TEST_SIGNATURE")...)
-	return &kms.SignOutput{
-		KeyId:            in.KeyId,
-		Signature:        data,
-		SigningAlgorithm: types.SigningAlgorithmSpecEcdsaSha512,
-	}, nil
+	// We want to test around Sign failure then return an error
+	return nil, fmt.Errorf("Sign failed")
 }
 
 // Helper type that will operate as a test auth client

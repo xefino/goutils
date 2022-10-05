@@ -11,22 +11,22 @@ import (
 	"github.com/xefino/goutils/utils"
 )
 
-// KMSConnection allows the user to handle requests made against KMS in a standard fashion
-type KMSConnection struct {
+// Connection allows the user to handle requests made against KMS in a standard fashion
+type Connection struct {
 	inner  KMSAPI
 	logger *utils.Logger
 }
 
-// NewKMSConnection creates a new KMS connection from an AWS session and a logger
-func NewKMSConnection(cfg aws.Config, logger *utils.Logger) *KMSConnection {
-	return &KMSConnection{
+// NewConnection creates a new KMS connection from an AWS session and a logger
+func NewConnection(cfg aws.Config, logger *utils.Logger) *Connection {
+	return &Connection{
 		inner:  kms.NewFromConfig(cfg),
 		logger: logger,
 	}
 }
 
 // CreateKey creates a new key in KMS with the specified spec, usage and policy document
-func (conn *KMSConnection) CreateKey(ctx context.Context, spec types.KeySpec, usage types.KeyUsageType,
+func (conn *Connection) CreateKey(ctx context.Context, spec types.KeySpec, usage types.KeyUsageType,
 	doc *policy.Policy, multiRegion bool) (*types.KeyMetadata, error) {
 
 	// First, attempt to serialize the policy to JSON; if this fails then return an error

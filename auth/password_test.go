@@ -1,8 +1,6 @@
 package auth
 
 import (
-	"fmt"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"golang.org/x/crypto/bcrypt"
@@ -39,7 +37,6 @@ var _ = Describe("Password Tests", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 
 		// Verify the hashed password
-		fmt.Printf("Length: %d\n", len(hashed))
 		Expect(hashed).ShouldNot(BeEmpty())
 		Expect(hashed).Should(HaveLen(61))
 		Expect(hashed[60]).Should(Equal(uint8(0)))
@@ -81,5 +78,17 @@ var _ = Describe("Password Tests", func() {
 		Expect(matched).Should(BeTrue())
 		Expect(err).Should(HaveOccurred())
 		Expect(err.Error()).Should(Equal("Version mismatch"))
+	})
+
+	// Tests that, if the hash of the cleartext password matches the hashed value and the version bit
+	// matches it also, then true and nil will be returned
+	It("VerifyPassword - Hash value matches, Version matches - True, nil returned", func() {
+
+		// Attempt to match the cleartext password against the hashed value; this should not fail
+		matched, err := VerifyPassword("$2a$10$HnehWrqzxX9RKjrVYzhNkuoZqaWRmlwxk/vjh9BpiUDvtvEQ.mq6u\x00", "test_password_ftw")
+
+		// Verify the match value and the error
+		Expect(matched).Should(BeTrue())
+		Expect(err).ShouldNot(HaveOccurred())
 	})
 })

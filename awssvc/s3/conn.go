@@ -12,28 +12,28 @@ import (
 	"github.com/xefino/goutils/utils"
 )
 
-// IS3Connection describes the functionality encapsulated in an S3 connection
-type IS3Connection interface {
+// IConnection describes the functionality encapsulated in an S3 connection
+type IConnection interface {
 	DownloadToStream(ctx context.Context, bucket string, key string) (io.Writer, error)
 	UploadFromStream(ctx context.Context, bucket string, key string, body io.Reader) error
 }
 
-// S3Connection wraps functionality necessary to communicate with AWS S3
-type S3Connection struct {
+// Connection wraps functionality necessary to communicate with AWS S3
+type Connection struct {
 	inner  S3API
 	logger *utils.Logger
 }
 
-// NewS3Connection creates a new S3 connection from an AWS session and a logger
-func NewS3Connection(cfg aws.Config, logger *utils.Logger) *S3Connection {
-	return &S3Connection{
+// NewConnection creates a new S3 connection from an AWS session and a logger
+func NewConnection(cfg aws.Config, logger *utils.Logger) *Connection {
+	return &Connection{
 		inner:  s3.NewFromConfig(cfg),
 		logger: logger,
 	}
 }
 
 // DownloadToStream retrieves a file from S3 and downloads it to a stream so we can work with it
-func (conn *S3Connection) DownloadToStream(ctx context.Context, bucket string, key string) (io.Writer, error) {
+func (conn *Connection) DownloadToStream(ctx context.Context, bucket string, key string) (io.Writer, error) {
 	conn.logger.Log("Attempting to download %s from %s in S3...", key, bucket)
 
 	// First, create a new S3 manager from our inner S3 connection
@@ -56,7 +56,7 @@ func (conn *S3Connection) DownloadToStream(ctx context.Context, bucket string, k
 }
 
 // UploadFromStream writes data in a stream to a file in S3
-func (conn *S3Connection) UploadFromStream(ctx context.Context, bucket string, key string, body io.Reader) error {
+func (conn *Connection) UploadFromStream(ctx context.Context, bucket string, key string, body io.Reader) error {
 	conn.logger.Log("Attempting to upload %s to %s in S3...", key, bucket)
 
 	// First, create a new S3 manager from our inner S3 connection
