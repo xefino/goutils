@@ -36,6 +36,8 @@ github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.14 h1:ZSIPAkAsCCjYrhqfw2+lNzWDzxz
 github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.14/go.mod h1:AyGgqiKv9ECM6IZeNQtdT8NnMvUb3/2wokeq2Fgryto=
 github.com/aws/aws-sdk-go-v2/service/dynamodb v1.16.4 h1:mAZdz3kvGBWC0feqQcpUF9trQ0d1qmJVNrcUv6eneIo=
 github.com/aws/aws-sdk-go-v2/service/dynamodb v1.16.4/go.mod h1:xDs8FfL3lHGCYWb0ytqxjIKT5AYLY/Oi9Mh8BV0nkLg=
+github.com/aws/aws-sdk-go-v2/service/dynamodb v1.17.1 h1:1QpTkQIAaZpR387it1L+erjB5bStGFCJRvmXsodpPEU=
+github.com/aws/aws-sdk-go-v2/service/dynamodb v1.17.1/go.mod h1:BZhn/C3z13ULTSstVi2Kymc62bgjFh/JwLO9Tm2OFYI=
 github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.13.18 h1:LxbyLA3QSk3OiIstssH/9YYKABi2p++GSHXuUVe9/uU=
 github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.13.18/go.mod h1:GD6ADXrQblUCuTnIjApbCXztFPMMzaOlYwQY7z40io4=
 github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.8/go.mod h1:MJUgrBPfGB4yk2uWoImVqd9cklry1hATyJV/7gJ6JTk=
@@ -45,6 +47,8 @@ github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.1.18 h1:BBYoNQt2kUZUUK
 github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.1.18/go.mod h1:NS55eQ4YixUJPTC+INxi2/jCqe1y2Uw3rnh9wEOVJxY=
 github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.7.15 h1:cglph/vzXji9hnXhlWq2bVkPU0qofeOCV/Jv7AWGEh4=
 github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.7.15/go.mod h1:NNBwPIB0wjkpeeQztU3FRD8O8T77MCrObyC1RiHf6G8=
+github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.7.17 h1:o0Ia3nb56m8+8NvhbCDiSBiZRNUwIknVWobx5vks0Vk=
+github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.7.17/go.mod h1:WJD9FbkwzM2a1bZ36ntH6+5Jc+x41Q4K2AcLeHDLAS8=
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.15/go.mod h1:ZVJ7ejRl4+tkWMuCwjXoy0jd8fF5u3RCyWjSVjUIvQE=
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.17 h1:Jrd/oMh0PKQc6+BowB+pLEwLIgaQF29eYbe7E1Av9Ug=
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.17/go.mod h1:4nYOrY41Lrbk2170/BGkcJKBhws9Pfn8MG3aGqjjeFI=
