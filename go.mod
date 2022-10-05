@@ -13,7 +13,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.17.1
 	github.com/aws/aws-sdk-go-v2/service/kms v1.18.9
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.11
-	github.com/aws/aws-sdk-go-v2/service/sso v1.11.23
 	github.com/aws/smithy-go v1.13.3
 	github.com/cenkalti/backoff/v4 v4.1.3
 	github.com/go-oauth2/oauth2/v4 v4.5.1
@@ -39,6 +38,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.7.17 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.17 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.13.17 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.11.23 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.13.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.16.19 // indirect
 	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect

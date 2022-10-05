@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go-v2/service/sso/types"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
 // EnsureTableExists ensures that the table exists for testing purposes
