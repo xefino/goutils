@@ -3,11 +3,16 @@ package testing
 import (
 	"context"
 	"errors"
+	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
+
+// Mutex to use when modifying the table so we don't have issues with resource-not-found or
+// resource-in-use errors
+var mut = new(sync.RWMutex)
 
 // EnsureTableExists ensures that the table exists for testing purposes
 func EnsureTableExists(ctx context.Context, cfg aws.Config, table *dynamodb.CreateTableInput) error {
@@ -16,6 +21,7 @@ func EnsureTableExists(ctx context.Context, cfg aws.Config, table *dynamodb.Crea
 	client := dynamodb.NewFromConfig(cfg)
 
 	// Next, attempt to get the table description associated with the table name
+	mut.RLock()
 	output, err := client.DescribeTable(ctx, &dynamodb.DescribeTableInput{
 		TableName: table.TableName,
 	})
@@ -23,6 +29,7 @@ func EnsureTableExists(ctx context.Context, cfg aws.Config, table *dynamodb.Crea
 	// Now, if we got an error then check if it was a resource-not-found exception. If
 	// it was then that means we should create the table; otherwise, it means that something
 	// isn't right so return it. If the description was nil, we'll also create the table
+	mut.RUnlock()
 	var create bool
 	if err != nil {
 		if temp := new(types.ResourceNotFoundException); !errors.As(err, &temp) {
@@ -36,6 +43,8 @@ func EnsureTableExists(ctx context.Context, cfg aws.Config, table *dynamodb.Crea
 
 	// Finally, if we want to create the table then do so here; return any error that occurs
 	if create {
+		mut.Lock()
+		defer mut.Unlock()
 		_, err := client.CreateTable(ctx, table)
 		if err != nil {
 			return err
@@ -51,7 +60,11 @@ func EmptyTable(ctx context.Context, cfg aws.Config, table *dynamodb.CreateTable
 	// First, create a connection to our local DynamoDB
 	client := dynamodb.NewFromConfig(cfg)
 
-	// Next, attempt to delete the table
+	// Next, set the lock so that we don't try to delete and create the table concurrently
+	mut.Lock()
+	defer mut.Unlock()
+
+	// Now, attempt to delete the table
 	_, err := client.DeleteTable(ctx, &dynamodb.DeleteTableInput{
 		TableName: table.TableName,
 	})
