@@ -20,5 +20,7 @@ jobs:
         run: go build -v ./...
       - name: Setup Local DynamoDB
         run: docker run -p 9000:8000 amazon/dynamodb-local &
+      - name: Setup Local KMS
+        run: docker run -p 8080:8080 nsmithuk/local-kms
       - name: Test
         run: go test -v ./... -count=1 -cover -race -vet=off
