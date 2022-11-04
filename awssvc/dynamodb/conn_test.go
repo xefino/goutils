@@ -72,7 +72,7 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 
 	// Tests the conditions under which doRetry will attempt to retry a DynamoDB reques
 	DescribeTable("doRetry - Retry Conditions",
-		func(inner error, retries int, verifier func(*utils.GError)) {
+		func(inner error, retried bool, verifier func(*utils.GError)) {
 
 			// First, create our test failed connection with a logger and backoff conditions
 			logger := utils.NewLogger("testd", "test")
@@ -97,36 +97,38 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 
 			// Finally, verify the resulting error
 			casted := err.(*Error)
-			Expect(count).Should(And(
-				BeNumerically("<=", retries+1),
-				BeNumerically(">=", retries-1)))
 			Expect(err).Should(HaveOccurred())
 			Expect(casted.TableName).Should(Equal("TEST_TABLE"))
 			verifier(casted.GError)
+			if retried {
+				Expect(count).Should(BeNumerically(">", 1))
+			} else {
+				Expect(count).Should(Equal(1))
+			}
 		},
 		Entry("ProvisionedThroughputExceededException - Retried",
-			&types.ProvisionedThroughputExceededException{Message: aws.String("")}, 4,
+			&types.ProvisionedThroughputExceededException{Message: aws.String("")}, true,
 			testutils.ErrorVerifier("test", "dynamodb", "/goutils/awssvc/dynamodb/conn_test.go", "glob",
 				"", 85, testutils.InnerErrorVerifier("operation error : , ProvisionedThroughputExceededException: "),
 				"GET request to TEST_TABLE in DynamoDB failed", "[test] dynamodb.glob. "+
 					"(/goutils/awssvc/dynamodb/conn_test.go 85): GET request to TEST_TABLE in DynamoDB failed, "+
 					"Inner: operation error : , ProvisionedThroughputExceededException: .")),
 		Entry("RequestLimitExceeded - Retried",
-			&types.RequestLimitExceeded{Message: aws.String("")}, 5,
+			&types.RequestLimitExceeded{Message: aws.String("")}, true,
 			testutils.ErrorVerifier("test", "dynamodb", "/goutils/awssvc/dynamodb/conn_test.go", "glob",
 				"", 85, testutils.InnerErrorVerifier("operation error : , RequestLimitExceeded: "),
 				"GET request to TEST_TABLE in DynamoDB failed", "[test] dynamodb.glob. "+
 					"(/goutils/awssvc/dynamodb/conn_test.go 85): GET request to TEST_TABLE in DynamoDB failed, "+
 					"Inner: operation error : , RequestLimitExceeded: .")),
 		Entry("InternalServerError - Retried",
-			&types.InternalServerError{Message: aws.String("")}, 5,
+			&types.InternalServerError{Message: aws.String("")}, true,
 			testutils.ErrorVerifier("test", "dynamodb", "/goutils/awssvc/dynamodb/conn_test.go", "glob",
 				"", 85, testutils.InnerErrorVerifier("operation error : , InternalServerError: "),
 				"GET request to TEST_TABLE in DynamoDB failed", "[test] dynamodb.glob. "+
 					"(/goutils/awssvc/dynamodb/conn_test.go 85): GET request to TEST_TABLE in DynamoDB failed, "+
 					"Inner: operation error : , InternalServerError: .")),
 		Entry("ResourceNotFoundException - Not Retried",
-			&types.ResourceNotFoundException{Message: aws.String("")}, 1,
+			&types.ResourceNotFoundException{Message: aws.String("")}, false,
 			testutils.ErrorVerifier("test", "dynamodb", "/goutils/awssvc/dynamodb/conn_test.go", "glob",
 				"", 85, testutils.InnerErrorVerifier("operation error : , ResourceNotFoundException: "),
 				"GET request to TEST_TABLE in DynamoDB failed", "[test] dynamodb.glob. "+
