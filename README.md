@@ -1,4 +1,4 @@
-[![Testing Status](https://github.com/xefino/goutils/workflows/Test%20%Commits/badge.svg)](https://github.com/xefino/goutils/actions)
+[![Testing Status](https://github.com/xefino/goutils/workflows/test/badge.svg)](https://github.com/xefino/goutils/actions)
 
 # goutils
 Common Go codebase for Xefino projects. This repo has been open-sourced for the purpose of rendering a service to the wider Go community and ensuring that potential errors and bugs in our own projects are surfaced more easily.
