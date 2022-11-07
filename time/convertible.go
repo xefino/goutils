@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	xstr "github.com/xefino/goutils/strings"
+	"gopkg.in/yaml.v3"
 )
 
 // Convertible represents a wrapper for a time.Time object, allowing it to be converted to and from
@@ -15,6 +16,7 @@ import (
 // will be determined by the value provided to the Layout field and will operate according to Go's
 // documentation for time.Time.
 type Convertible struct {
+	yaml.Marshaler
 	time.Time
 	Layout string
 }
@@ -36,6 +38,12 @@ func (c Convertible) MarshalJSON() ([]byte, error) {
 // MarshalCSV converts the time contained in the Convertible to a CSV column, using the Layout field
 // associated with this Convertible to format the time (or RFC3339 if no layout was provided).
 func (c Convertible) MarshalCSV() (string, error) {
+	return c.marshalInner(), nil
+}
+
+// MarshalYAML converts the time contained in the Convertible to a YAML node, using the Layout field
+// associated with this Convertible to format the time (or RFC3339 if no layout was provided).
+func (c Convertible) MarshalYAML() (interface{}, error) {
 	return c.marshalInner(), nil
 }
 
@@ -62,6 +70,16 @@ func (c *Convertible) UnmarshalJSON(raw []byte) error {
 // that value, using the Layout field to parse the raw data (or RFC3339 if no layout was provided).
 func (c *Convertible) UnmarshalCSV(raw string) error {
 	return c.unmarshalInner(raw)
+}
+
+// UnmarshalYAML converts a YAML node to a time.Time and sets the inner Time on this Convertible to
+// that value, using the Layout field to parse the raw data (or RFC3339 if no layout was provided).
+func (c *Convertible) UnmarshalYAML(value *yaml.Node) error {
+	if value.Kind != yaml.ScalarNode {
+		return fmt.Errorf("YAML node had an invalid kind (expected scalar value)")
+	} else {
+		return c.unmarshalInner(value.Value)
+	}
 }
 
 // UnmarshalDynamoDBAttributeValue converts a DynamoDB AttributeValue object to a time.Time and sets

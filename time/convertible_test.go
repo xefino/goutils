@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"gopkg.in/yaml.v3"
 )
 
 var _ = Describe("Convertible Tests", func() {
@@ -22,6 +23,13 @@ var _ = Describe("Convertible Tests", func() {
 	// Tests that the MarshalCSV function works
 	It("MarshalCSV - Works", func() {
 		data, err := WithLayout(time.Date(2022, time.November, 4, 13, 37, 0, 0, time.UTC), "").MarshalCSV()
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(data).Should(Equal("2022-11-04T13:37:00Z"))
+	})
+
+	// Tests that the MarshalYAML function works
+	It("MarshalYAML - Works", func() {
+		data, err := WithLayout(time.Date(2022, time.November, 4, 13, 37, 0, 0, time.UTC), time.RFC3339).MarshalYAML()
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(data).Should(Equal("2022-11-04T13:37:00Z"))
 	})
@@ -72,6 +80,32 @@ var _ = Describe("Convertible Tests", func() {
 	It("UnmarshalCSV - No failures - Parsed", func() {
 		convertible := Convertible{Layout: time.RFC3339}
 		err := convertible.UnmarshalCSV("2022-11-04T13:37:00Z")
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(convertible.Time).Should(Equal(time.Date(2022, time.November, 4, 13, 37, 0, 0, time.UTC)))
+	})
+
+	// Tests that, if the YAML node has an invalid kind, then calling MarshalYAML will return an error
+	It("MarshalYAML - Node type is not scalar - Error", func() {
+		convertible := Convertible{Layout: time.RFC3339}
+		err := convertible.UnmarshalYAML(&yaml.Node{Kind: yaml.AliasNode})
+		Expect(err).Should(HaveOccurred())
+		Expect(err.Error()).Should(Equal("YAML node had an invalid kind (expected scalar value)"))
+	})
+
+	// Tests that, if time parsing fails, then calling MarshalYAML will return an error
+	It("MarshalYAML - Parse fails - Error", func() {
+		convertible := Convertible{Layout: time.RFC3339}
+		err := convertible.UnmarshalYAML(&yaml.Node{Kind: yaml.ScalarNode, Value: "derp"})
+		Expect(err).Should(HaveOccurred())
+		Expect(err.Error()).Should(Equal("Failed to parse \"derp\" to time, error: parsing time \"derp\" " +
+			"as \"2006-01-02T15:04:05Z07:00\": cannot parse \"derp\" as \"2006\""))
+	})
+
+	// Tests that, if time parsing does not fail, then calling MarshalYAML will parse the data and
+	// assign it to the Time field on the Convertible
+	It("MarshalYAML - No failures - Parsed", func() {
+		convertible := Convertible{Layout: time.RFC3339}
+		err := convertible.UnmarshalYAML(&yaml.Node{Kind: yaml.ScalarNode, Value: "2022-11-04T13:37:00Z"})
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(convertible.Time).Should(Equal(time.Date(2022, time.November, 4, 13, 37, 0, 0, time.UTC)))
 	})
