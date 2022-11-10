@@ -25,6 +25,7 @@ Currently, the repo is structured as a number of directories based on functional
 - /http: Standardized HTTP client for working with REST APIs
 - /math: Arithmetic and logical helper functions
 - /reflection: Functions used to handle run-time reflection, such as getting all the field info from an object.
+- /servicehelpers: Functions used to help set up service scheduling infrastructure
 - /sql: Helper functions for SQL-related code, such as reading results from an SQL query into a list of objects.
 - /strings: Utility functions for string manipulation
 - /testutils: Utility functions commonly used in testing
