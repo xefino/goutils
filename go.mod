@@ -15,8 +15,10 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.11
 	github.com/aws/smithy-go v1.13.3
 	github.com/cenkalti/backoff/v4 v4.1.3
+	github.com/flowerinthenight/kettle/v2 v2.4.3
 	github.com/go-oauth2/oauth2/v4 v4.5.1
 	github.com/golang-jwt/jwt v3.2.1+incompatible
+	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/google/uuid v1.1.1
 	github.com/matelang/jwt-go-aws-kms/v2 v2.0.0-20220929133638-844cde3dbeea
 	github.com/onsi/ginkgo/v2 v2.1.4
@@ -42,9 +44,13 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sso v1.11.23 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.13.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.16.19 // indirect
+	github.com/go-redsync/redsync v1.4.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
+	github.com/hashicorp/errwrap v1.1.0 // indirect
+	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	github.com/satori/go.uuid v1.2.0 // indirect
 	golang.org/x/net v0.0.0-20220425223048-2871e0cb64e4 // indirect
 	golang.org/x/sys v0.0.0-20220422013727-9388b58f7150 // indirect
 	golang.org/x/text v0.3.7 // indirect
