@@ -104,14 +104,14 @@ func (c *Convertible) UnmarshalDynamoDBAttributeValue(value types.AttributeValue
 }
 
 // Scan converts an SQL driver value to a time.Time and sets the inner Time on this Convertible to that
-// value, using the Layout field to parse the raw data (or RFC3339 if no layout was provided). This function
-// expects the driver value to be convertible to a string.
+// value, using the Layout field to parse the raw data (or RFC3339 if no layout was provided). This
+// function expects the driver value to be convertible to a string.
 func (c *Convertible) Scan(value interface{}) error {
 	return c.unmarshalInner(value.(string))
 }
 
-// Helper function that retrieves the layout that should be used for conversion operations. This function will
-// return the RFC3339 layout if the layout associated with the Convertible is empty
+// Helper function that retrieves the layout that should be used for conversion operations. This function
+// will return the RFC3339 layout if the layout associated with the Convertible is empty
 func (c Convertible) getLayout() string {
 	if xstr.IsEmpty(c.Layout) {
 		return time.RFC3339
