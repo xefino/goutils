@@ -2,6 +2,7 @@ package sql
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -10,6 +11,9 @@ import (
 	"github.com/xefino/goutils/collections"
 	"github.com/xefino/goutils/reflection"
 )
+
+// EOF describes the error that should be returned when asynchronous operations have concluded
+var EOF error = errors.New("EOF")
 
 // Get the type associated with the sql.Scanner interface so we can check whether or not the type
 // associated with a given field implements it
@@ -28,12 +32,82 @@ type fieldInfo struct {
 	Tag               string
 }
 
+// ReadRowsAsync extracts all the data from a single SQL result set, converts each item into an object
+// of the specified type and sends the result to a channel. This function also sends any error that
+// occurs to the channel. This allows the function to be run concurrently with other functions. This
+// function will exit when an error occurs
+func ReadRowsAsync[T any](rows *sql.Rows, objCh chan<- *T, errCh chan<- error) {
+	defer rows.Close()
+
+	// First, create the scanner we'll use to convert each row to an object; if this fails then return an error
+	scanner, err := createScanner[T](rows)
+	if err != nil {
+		errCh <- err
+		return
+	}
+
+	// Next, iterate over all the rows in the result set and attempt to read each into an item of the
+	// type sent into the function
+	for rows.Next() {
+
+		// Attempt to scan the row into a new result object; if this fails then return an error
+		var result T
+		if err := scanner(&result); err != nil {
+			errCh <- fmt.Errorf("Failed to read row into object of type %T, error: %v", result, err)
+			return
+		}
+
+		// Send the result to a channel
+		objCh <- &result
+	}
+
+	// Finally, if the rows failed for any reason at the end then return an error
+	if err := rows.Err(); err != nil {
+		errCh <- fmt.Errorf("Row could not be read, error: %v", err)
+		return
+	}
+
+	errCh <- EOF
+}
+
 // ReadRows extracts all the data from a single SQL result set into a slice of the specified type.
 // This function attempts to map each column in the result set to an associated field on the item,
 // based on the value of an "sql" tag, a "json" tag or the field name in that order. The mapping is
 // case-insensitive. If any column can't be mapped then an error will be returned.
 func ReadRows[T any](rows *sql.Rows) ([]*T, error) {
 	defer rows.Close()
+
+	// First, create the scanner we'll use to convert each row to an object; if this fails then return an error
+	scanner, err := createScanner[T](rows)
+	if err != nil {
+		return nil, err
+	}
+
+	// Next, iterate over all the rows in the result set and attempt to read each into an item of the
+	// type sent into the function
+	data := make([]*T, 0)
+	for rows.Next() {
+
+		// Attempt to scan the row into a new result object; if this fails then return an error
+		var result T
+		if err := scanner(&result); err != nil {
+			return nil, fmt.Errorf("Failed to read row into object of type %T, error: %v", result, err)
+		}
+
+		// Add the result to our list of data
+		data = append(data, &result)
+	}
+
+	// Finally, if the rows failed for any reason at the end then return an error
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("Row could not be read, error: %v", err)
+	}
+
+	return data, nil
+}
+
+// Helper function that creates the scanner function we'll use to read a row of SQL data into an object
+func createScanner[T any](rows *sql.Rows) (func(*T) error, error) {
 
 	// First, get the column names from the result set and map them to their indices
 	columnNames, _ := rows.Columns()
@@ -49,8 +123,8 @@ func ReadRows[T any](rows *sql.Rows) ([]*T, error) {
 		return nil, err
 	}
 
-	// Now, create the scanner function from the field-column mapping that we'll use to read each row
-	scanner := func(result *T) error {
+	// Finally, create the scanner function from the field-column mapping that we'll use to read each row
+	return func(result *T) error {
 
 		// First, get the value of the object we'll be writing to
 		tValue := reflect.ValueOf(result).Elem()
@@ -94,29 +168,7 @@ func ReadRows[T any](rows *sql.Rows) ([]*T, error) {
 		} else {
 			return err
 		}
-	}
-
-	// Finally, iterate over all the rows in the result set and attempt to read each into an item
-	// of the type sent into the function
-	data := make([]*T, 0)
-	for rows.Next() {
-
-		// Attempt to scan the row into a new result object; if this fails then return an error
-		var result T
-		if err := scanner(&result); err != nil {
-			return nil, fmt.Errorf("Failed to read row into object of type %T, error: %v", result, err)
-		}
-
-		// Add the result to our list of data
-		data = append(data, &result)
-	}
-
-	// If the rows failed for any reason at the end then return an error
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("Row could not be read, error: %v", err)
-	}
-
-	return data, nil
+	}, nil
 }
 
 // Helper function that maps the fields to the SQL columns returned from the query

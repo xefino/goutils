@@ -46,15 +46,15 @@ var _ = Describe("ConvertibleDecimal Marshal/Unmarshal Tests", func() {
 	})
 
 	// Test that converting the ConvertibleDecimal enum to a DynamoDB AttributeVAlue works for all values
-	DescribeTable("MarshalDynamoDBAttributeValue - Works", func() {
+	It("MarshalDynamoDBAttributeValue - Works", func() {
 		c := ConvertibleDecimal{decimal.NewFromFloat(25.99)}
 		data, err := attributevalue.Marshal(c)
 		Expect(err).ShouldNot(HaveOccurred())
-		Expect(data.(*types.AttributeValueMemberS).Value).Should(Equal("25.99"))
+		Expect(data.(*types.AttributeValueMemberN).Value).Should(Equal("25.99"))
 	})
 
 	// Test that converting the ConvertibleDecimal enum to an SQL value for all values
-	DescribeTable("Value Tests", func() {
+	It("Value Tests", func() {
 		c := ConvertibleDecimal{decimal.NewFromFloat(25.99)}
 		data, err := c.Value()
 		Expect(err).ShouldNot(HaveOccurred())
