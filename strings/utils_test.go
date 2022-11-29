@@ -65,4 +65,21 @@ var _ = Describe("Strings Tests", func() {
 		result := Quote("A", "derp")
 		Expect(result).Should(Equal("derpAderp"))
 	})
+
+	// Test that, if Delimit is called with a count argument of 0, then the function will panic
+	It("Delimit - Count is 0 - Panic", func() {
+		Expect(func() {
+			Delimit("?", ", ", 0)
+		}).Should(Panic())
+	})
+
+	// Tests the conditions determining how the Delimit function should operate
+	DescribeTable("Delimit - Conditions",
+		func(s string, sep string, count int, result string) {
+			Expect(Delimit(s, sep, uint(count))).Should(Equal(result))
+		},
+		Entry("s is empty - Works", "", ", ", 2, ", "),
+		Entry("sep is empty - Works", "d", "", 2, "dd"),
+		Entry("count is 1 - Works", "?", ", ", 1, "?"),
+		Entry("s and sep not empty, count > 1 - Works", "?", ", ", 3, "?, ?, ?"))
 })

@@ -23,3 +23,9 @@ func ModifyAndJoin[S ~string](applier func(string) string, separator string, ite
 func Quote[S ~string](inner S, quote string) string {
 	return quote + string(inner) + quote
 }
+
+// Delimit creates a list of count values of s separated by count - 1 values of sep. Note that this
+// function will panic if count is 0 or if the result of ((len(s) + len(sep)) * count) overflows.
+func Delimit(s string, sep string, count uint) string {
+	return strings.Repeat(s+sep, int(count)-1) + s
+}
