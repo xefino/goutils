@@ -37,6 +37,34 @@ var _ = Describe("Time Formatting Tests", func() {
 		Expect(timestamp).Should(Equal("1655510399000000000"))
 	})
 
+	// Test that the Epoch works when the second in in decimals up to the
+	// nanoseconds place
+	It("Epoch - Works", func() {
+
+		// Create our new test duration
+		duration := 23*time.Hour + 14*time.Second + 179*time.Millisecond
+
+		// Attempt to convert the duration to a nanosecond timestamp
+		timestamp := Epoch(duration)
+
+		// Verify the timestamp
+		Expect(timestamp).Should(Equal("82814179000000"))
+	})
+
+	// Tests that if there are no nanoseconds on the duration, then calling
+	// the Epoch function will return a nanosecond timestamp
+	It("Epoch - Nanoseconds zero - Works", func() {
+
+		// Create our new test duration
+		duration := 23*time.Hour + 14*time.Second
+
+		// Attempt to convert the duration to a nanosecond timestamp
+		timestamp := Epoch(duration)
+
+		// Verify the timestamp
+		Expect(timestamp).Should(Equal("82814000000000"))
+	})
+
 	// Tests that the Date function works to convert a time object to a string
 	// representing the date in a YYYY-MM-DD format
 	It("Date - Works", func() {
