@@ -23,9 +23,12 @@ var _ = Describe("Asyncer Tests", func() {
 		})
 
 		// Now, wait for the operation to complete
-		result, err := async.Await()
+		Expect(async.Received()).Should(BeFalse())
+		result, err, rec := async.Await()
 
 		// Finally, verify that we recevied the default value of the result and an error
+		Expect(async.Received()).Should(BeTrue())
+		Expect(rec).Should(BeTrue())
 		Expect(result).Should(Equal(0))
 		Expect(err).Should(HaveOccurred())
 		Expect(err.Error()).Should(Equal("failed"))
@@ -44,10 +47,37 @@ var _ = Describe("Asyncer Tests", func() {
 		})
 
 		// Now, wait for the operation to complete
-		result, err := async.Await()
+		Expect(async.Received()).Should(BeFalse())
+		result, err, rec := async.Await()
 
 		// Finally, verify that we recevied the result of the function and that no error occurred
+		Expect(async.Received()).Should(BeTrue())
+		Expect(rec).Should(BeTrue())
 		Expect(result).Should(Equal(42))
 		Expect(err).ShouldNot(HaveOccurred())
+	})
+
+	It("Do - Await requested twice - Receive occurs once", func() {
+
+		// First, create the asyncer and attempt to start the asyncer with a function; this should not fail
+		async := NewAsyncer[int]()
+		async.Do(func() (int, error) {
+			time.Sleep(10 * time.Millisecond)
+			return 42, nil
+		})
+
+		// Next, wait for the operation to complete
+		Expect(async.Received()).Should(BeFalse())
+		result, err, rec := async.Await()
+
+		// Now, verify that we recevied the result of the function and that no error occurred
+		Expect(async.Received()).Should(BeTrue())
+		Expect(rec).Should(BeTrue())
+		Expect(result).Should(Equal(42))
+		Expect(err).ShouldNot(HaveOccurred())
+
+		// Finally, attempt to receive from the Await function again; rec should be false now
+		_, _, rec = async.Await()
+		Expect(rec).Should(BeFalse())
 	})
 })
