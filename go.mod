@@ -8,9 +8,9 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.17.1
 	github.com/aws/aws-sdk-go-v2/config v1.17.7
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.20
-	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.10.2
+	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.10.6
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.11.33
-	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.17.3
+	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.17.7
 	github.com/aws/aws-sdk-go-v2/service/kms v1.18.11
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.11
 	github.com/aws/smithy-go v1.13.4
@@ -24,6 +24,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.4.0
 	github.com/onsi/gomega v1.23.0
 	github.com/shopspring/decimal v1.3.1
+	github.com/xefino/quantum-api-go v1.2.15
 	golang.org/x/crypto v0.0.0-20220926161630-eccd6366d1be
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
 	gopkg.in/yaml.v3 v3.0.1
@@ -36,7 +37,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.19 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.24 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.14 // indirect
-	github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.13.22 // indirect
+	github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.13.26 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.10 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.1.18 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.7.19 // indirect
@@ -53,6 +54,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect
+	github.com/xefino/protobuf-gen-go v1.2.3 // indirect
 	golang.org/x/net v0.1.0 // indirect
 	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/text v0.4.0 // indirect

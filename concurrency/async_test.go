@@ -57,6 +57,7 @@ var _ = Describe("Asyncer Tests", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 
+	// Test that, if the Await function is called twice, then only the first call will return true
 	It("Do - Await requested twice - Receive occurs once", func() {
 
 		// First, create the asyncer and attempt to start the asyncer with a function; this should not fail
