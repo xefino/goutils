@@ -24,6 +24,7 @@ Currently, the repo is structured as a number of directories based on functional
 - /dynamodb: Helper functions for DynamoDB to make working with data in DynamoDB easier
 - /http: Standardized HTTP client for working with REST APIs
 - /math: Arithmetic and logical helper functions
+- /random: Functions to generate random data
 - /reflection: Functions used to handle run-time reflection, such as getting all the field info from an object.
 - /servicehelpers: Functions used to help set up service scheduling infrastructure
 - /sql: Helper functions for SQL-related code, such as reading results from an SQL query into a list of objects.
