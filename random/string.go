@@ -7,7 +7,8 @@ var (
 	Uppercase    = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	Lowercase    = []rune("abcdefghijklmnopqrstuvwxyz")
 	Numbers      = []rune("0123456789")
-	Alphanumeric = []rune(string(Uppercase) + string(Lowercase) + string(Numbers) + "_-~")
+	Alphanumeric = []rune(string(Uppercase) + string(Lowercase) + string(Numbers))
+	CCM          = []rune(string(Alphanumeric) + "_-~")
 )
 
 // RandomNRunes generates a string by choosing N runes at random from the runes list provided
