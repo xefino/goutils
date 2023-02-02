@@ -70,6 +70,78 @@ var _ = Describe("Indexed Map Tests", func() {
 		Entry("Key 3 in dictionary - True", "sherbert", true),
 		Entry("Key not in dictionary - False", "rainbow", false))
 
+	// Tests that, if the At function is called with an index that is outside the bounds of the list
+	// then the function will panic
+	It("At - Index > 0, Outside bounds - Panic", func() {
+
+		// First, create a new indexed map
+		dict := NewIndexedMap[string, int]()
+
+		// Next, add some entries to the map
+		dict.Add("derp", 1, false)
+		dict.Add("herp", 2, false)
+		dict.Add("sherbert", 3, false)
+
+		// Finally, attempt to retrieve an item from an index outside the bounds of the list; this should panic
+		Expect(func() {
+			_ = dict.At(100)
+		}).Should(Panic())
+	})
+
+	// Tests that, if the At function is called with an index that is outside the bounds of the list
+	// then the function will panic
+	It("At - Index < 0, Outside bounds - Panic", func() {
+
+		// First, create a new indexed map
+		dict := NewIndexedMap[string, int]()
+
+		// Next, add some entries to the map
+		dict.Add("derp", 1, false)
+		dict.Add("herp", 2, false)
+		dict.Add("sherbert", 3, false)
+
+		// Finally, attempt to retrieve an item from an index outside the bounds of the list; this should panic
+		Expect(func() {
+			_ = dict.At(-100)
+		}).Should(Panic())
+	})
+
+	// Tests that, if the index is greater than or equal to zero but inside the bounds of the list, then
+	// the item at that index will be returned
+	It("At - Index >= 0, Inside bounds - Returned", func() {
+
+		// First, create a new indexed map
+		dict := NewIndexedMap[string, int]()
+
+		// Next, add some entries to the map
+		dict.Add("derp", 1, false)
+		dict.Add("herp", 2, false)
+		dict.Add("sherbert", 3, false)
+
+		// Finally, test the At function for indices at least zero; this should not fail
+		Expect(dict.At(0)).Should(Equal(1))
+		Expect(dict.At(1)).Should(Equal(2))
+		Expect(dict.At(2)).Should(Equal(3))
+	})
+
+	// Tests that, if the index is less than zero but inside the bounds of the list, then
+	// the item at that index will be returned
+	It("At - Index < 0, Inside bounds - Returned", func() {
+
+		// First, create a new indexed map
+		dict := NewIndexedMap[string, int]()
+
+		// Next, add some entries to the map
+		dict.Add("derp", 1, false)
+		dict.Add("herp", 2, false)
+		dict.Add("sherbert", 3, false)
+
+		// Finally, test the At function for indices less than zero; this should not fail
+		Expect(dict.At(-1)).Should(Equal(3))
+		Expect(dict.At(-2)).Should(Equal(2))
+		Expect(dict.At(-3)).Should(Equal(1))
+	})
+
 	// Tests that, if the Get function is called with a key that is
 	// not associated with any item in the list, then the zero value
 	// for that type and false will be returned

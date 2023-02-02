@@ -52,6 +52,19 @@ func (m *IndexedMap[U, T]) Exists(key U) bool {
 	return ok
 }
 
+// At retrieves the item located at the index provided. This function will
+// panic if the index is located outside the bounds of the list. If a negative
+// value is provided then the item will be indexed from the end of the list
+func (m *IndexedMap[U, T]) At(index int) T {
+	m.ctrl.RLock()
+	defer m.ctrl.RUnlock()
+	if index < 0 {
+		return m.data[len(m.data)+index]
+	} else {
+		return m.data[index]
+	}
+}
+
 // Get retrieves the item from the indexed list associated with the
 // key. True will be returned if the value was found, otherwise false
 // will be returned. This operation is guaranteed O(1).
