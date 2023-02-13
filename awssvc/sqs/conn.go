@@ -12,7 +12,7 @@ import (
 
 // SQSConnection contains functinoality allowing for systemical access to SQS
 type SQSConnection struct {
-	sqs    *sqs.Client
+	sqs    SQSAPI
 	logger *utils.Logger
 }
 
@@ -22,7 +22,7 @@ func NewSQSConnection(cfg aws.Config, logger *utils.Logger) *SQSConnection {
 }
 
 // FromClient creates a new SQS connection from an SQS client, a logger and options
-func FromClient(inner *sqs.Client, logger *utils.Logger) *SQSConnection {
+func FromClient(inner SQSAPI, logger *utils.Logger) *SQSConnection {
 
 	// First, create our SQS connection from the config and logger with default values
 	conn := SQSConnection{
