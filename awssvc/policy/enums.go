@@ -17,6 +17,28 @@ type Action string
 
 // Describes the various action types available to AWS
 var (
+
+	// SQS actions
+	AddPermission              = Action("sqs:AddPermission")
+	ChangeMessageVisibility    = Action("sqs:ChangeMessageVisibility")
+	CreateQueue                = Action("sqs:CreateQueue")
+	DeleteMessage              = Action("sqs:DeleteMessage")
+	DeleteQueue                = Action("sqs:DeleteQueue")
+	GetQueueAttributes         = Action("sqs:GetQueueAttributes")
+	GetQueueUrl                = Action("sqs:GetQueueUrl")
+	ListDeadLetterSourceQueues = Action("sqs:ListDeadLetterSourceQueues")
+	ListQueueTags              = Action("sqs:ListQueueTags")
+	ListQueues                 = Action("sqs:ListQueues")
+	PurgeQueue                 = Action("sqs:PurgeQueue")
+	ReceiveMessage             = Action("sqs:ReceiveMessage")
+	RemovePermission           = Action("sqs:RemovePermission")
+	SendMessage                = Action("sqs:SendMessage")
+	SetQueueAttributes         = Action("sqs:SetQueueAttributes")
+	TagQueue                   = Action("sqs:TagQueue")
+	UntagQueue                 = Action("sqs:UntagQueue")
+	SqsAll                     = Action("sqs:*")
+
+	// KMS actions
 	CancelKeyDeletion                   = Action("kms:CancelKeyDeletion")
 	ConnectCustomKeyStore               = Action("kms:ConnectCustomKeyStore")
 	CreateAlias                         = Action("kms:CreateAlias")

@@ -26,5 +26,7 @@ jobs:
           redis-port: 6379
       - name: Setup Local KMS
         run: docker run -p 8080:8080 nsmithuk/local-kms &
+      - name: Setup Local SQS
+        run: docker run -d --name goaws -p 4100:4100 pafortin/goaws
       - name: Test
         run: go test -v ./... -count=1 -cover -race -vet=off
