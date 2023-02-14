@@ -342,4 +342,37 @@ var _ = Describe("Common Tests", func() {
 		Entry("List is nil - False", nil, false),
 		Entry("Checker returns false for all items - False", []int{0, 2, 41, 42, 83}, false),
 		Entry("Checker returns true for one item - True", []int{0, 2, 41, 42, 43, 83}, true))
+
+	// Tests that the Page function works when the input array can be evenly split into pages of the size provided
+	It("Page - Size fits - Evently split", func() {
+
+		// First, create our initial array
+		inputs := []int{1, 2, 3, 4, 5, 6, 7, 8}
+
+		// Next, attempt to page the array with a size of 2
+		pages := Page(inputs, 2)
+
+		// Finally, verify the pages
+		Expect(pages).Should(HaveLen(4))
+		Expect(pages[0]).Should(ContainElements(1, 2))
+		Expect(pages[1]).Should(ContainElements(3, 4))
+		Expect(pages[2]).Should(ContainElements(5, 6))
+		Expect(pages[3]).Should(ContainElements(7, 8))
+	})
+
+	// Tests that the Page function works when the input array cannot be evenly split into pages of the size provided
+	It("Page - Size does not fit - Last page smaller", func() {
+
+		// First, create our initial array
+		inputs := []int{1, 2, 3, 4, 5, 6, 7, 8}
+
+		// Next, attempt to page the array with a size of 3
+		pages := Page(inputs, 3)
+
+		// Finally, verify the pages
+		Expect(pages).Should(HaveLen(3))
+		Expect(pages[0]).Should(ContainElements(1, 2, 3))
+		Expect(pages[1]).Should(ContainElements(4, 5, 6))
+		Expect(pages[2]).Should(ContainElements(7, 8))
+	})
 })

@@ -6,6 +6,20 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
 )
 
+// SQSOption contains the functionality necessary to modify the SQS connection
+type SQSOption interface {
+	Apply(*SQSConnection)
+}
+
+// WithSendMessagesBatchSize allows the user to modify the expected batch size to use when sending data
+// to the SQS.SendMessageBatch function
+type WithSendMessagesBatchSize int
+
+// Apply sets the send-message batch size associated with the SQS connection
+func (w WithSendMessagesBatchSize) Apply(sqs *SQSConnection) {
+	sqs.sendBatchSize = int(w)
+}
+
 // SendMessageOption describes the functionality necessary to configure an SQS.SendMessageInput beyond
 // the base fields required
 type SendMessageOption interface {

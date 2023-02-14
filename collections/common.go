@@ -131,3 +131,33 @@ func ContainsFunc[T any](list []T, check func(T) bool) bool {
 
 	return false
 }
+
+// Page splits a list of values into a paged list-of-lists where each page has the size provided
+func Page[T any](list []T, size int) [][]T {
+	length := len(list)
+
+	// Calculate the length of the resulting list; add one if we have a partial list
+	numResults := length / size
+	if length%size != 0 {
+		numResults++
+	}
+
+	// Fill each page of the results array from the original list
+	results := make([][]T, numResults)
+	for i := 0; i < numResults; i++ {
+
+		// Get the starting and ending indices of the page; if the end of the page is greater than the
+		// length of the initial list then set it to that value
+		start := i * size
+		end := start + size
+		if end > len(list) {
+			end = len(list)
+		}
+
+		// Extract the sublist and set the value at this index to it
+		results[i] = list[start:end]
+	}
+
+	// Return the paged array
+	return results
+}
