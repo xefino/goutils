@@ -296,6 +296,32 @@ var _ = Describe("Common Tests", func() {
 		Expect(list).Should(Equal([]string{"1", "2", "3", "10"}))
 	})
 
+	// Tests that the ConvertFilter function will produce an empty list if called with no data
+	It("ConvertFilter - No data provided - Empty list returned", func() {
+
+		// Attempt to do the conversion with an empty list
+		list := ConvertFilter(func(i int) (string, bool) {
+			return strconv.FormatInt(int64(i), 10), true
+		})
+
+		// Verify that the list is empty
+		Expect(list).Should(BeEmpty())
+	})
+
+	// Tests that the ConvertFilter function will produce a list of data where each item is the
+	// result of an input to the convert function provided that also returned true
+	It("ConvertFilter - Data provided - Converted, filtered", func() {
+
+		// Attempt to do the conversion with a non-empty list
+		list := ConvertFilter(func(i int) (string, bool) {
+			return strconv.FormatInt(int64(i), 10), i%2 == 0
+		}, 1, 2, 3, 10)
+
+		// Verify the converted data
+		Expect(list).Should(HaveLen(2))
+		Expect(list).Should(Equal([]string{"2", "10"}))
+	})
+
 	// Tests that, if the ConvertDictionary function is called with a value of nil for the
 	// list, then an empty map will be returned
 	It("ConvertDictionary - Nil - Works", func() {

@@ -98,6 +98,20 @@ func Convert[T any, U any](converter func(T) U, data ...T) []U {
 	return converted
 }
 
+// ConvertFilter converts all the items in a list from a first type to
+// a second type and filters the results based on a Boolean flag
+func ConvertFilter[T any, U any](converter func(T) (U, bool), data ...T) []U {
+	output := make([]U, 0)
+	for _, item := range data {
+		converted, ok := converter(item)
+		if ok {
+			output = append(output, converted)
+		}
+	}
+
+	return output
+}
+
 // ConvertDictionary creates a dictionary from a list using the converter function provided
 func ConvertDictionary[T any, U comparable, V any](data []T, converter func(T) (U, V)) map[U]V {
 	mapping := make(map[U]V, len(data))
