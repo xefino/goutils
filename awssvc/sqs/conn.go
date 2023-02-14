@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"strconv"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
 	"github.com/xefino/goutils/utils"
 )
 
@@ -64,6 +66,48 @@ func (conn *SQSConnection) SendMessage(ctx context.Context, url string, item any
 	}
 
 	return output, nil
+}
+
+// SendMessages attempts to convert the list of items to a batched message and send it to the SQS queue
+// indicated by the URL. The options provided may be used to modify the request
+func (conn *SQSConnection) SendMessages(ctx context.Context, url string, items []any,
+	options ...SendMessageBatchOption) (*sqs.SendMessageBatchOutput, error) {
+
+	// First, create the base send-message-batch input from the URL and a list of entries we'll fill in
+	input := sqs.SendMessageBatchInput{
+		QueueUrl: aws.String(url),
+		Entries:  make([]types.SendMessageBatchRequestEntry, len(items)),
+	}
+
+	// Next, attempt to fill in the message batch entries with the items provided
+	for i, item := range items {
+
+		// First, attempt to marshal the item to JSON; if this fails then return an error
+		data, err := json.Marshal(item)
+		if err != nil {
+			return nil, conn.logger.Error(err, "Failed to convert payload to JSON")
+		}
+
+		// Next, encode the JSON data as a base-64 string and then embed it into a send-message input
+		body := base64.StdEncoding.EncodeToString(data)
+		input.Entries[i] = types.SendMessageBatchRequestEntry{
+			Id:          aws.String(strconv.FormatInt(int64(i), 10)),
+			MessageBody: aws.String(body),
+		}
+
+		// Finally, iterate over all the options and apply each to this entry
+		for _, option := range options {
+			option.ApplyBatch(i, &input.Entries[i])
+		}
+	}
+
+	// Finally, attempt to send the batched message to SQS; if this fails then return an error
+	output, err := conn.sqs.SendMessageBatch(ctx, &input)
+	if err != nil {
+		return nil, conn.logger.Error(err, "Failed to send SQS batched message to %q", url)
+	}
+
+	return output, err
 }
 
 // GetURL retrieves the URL associated with the name of the SQS queue. The options provided may be used

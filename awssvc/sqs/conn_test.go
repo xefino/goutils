@@ -103,11 +103,11 @@ var _ = Describe("SQS Connection Tests", Ordered, func() {
 
 		// Finally, verify the error that was returned
 		Expect(url).Should(BeEmpty())
-		testutils.ErrorVerifier("test", "sqs", "/goutils/awssvc/sqs/conn.go", "SQSConnection", "GetURL", 87,
+		testutils.ErrorVerifier("test", "sqs", "/goutils/awssvc/sqs/conn.go", "SQSConnection", "GetURL", 131,
 			testutils.InnerErrorVerifier("operation error SQS: GetQueueUrl, https response error StatusCode: "+
 				"400, RequestID: 00000000-0000-0000-0000-000000000000, AWS.SimpleQueueService.NonExistentQueue: "),
 			"Failed to retrieve SQS queue URL for queue \"test-fail\"", "[test] sqs.SQSConnection.GetURL "+
-				"(/goutils/awssvc/sqs/conn.go 87): Failed to retrieve SQS queue URL for queue \"test-fail\", "+
+				"(/goutils/awssvc/sqs/conn.go 131): Failed to retrieve SQS queue URL for queue \"test-fail\", "+
 				"Inner: operation error SQS: GetQueueUrl, https response error StatusCode: 400, RequestID: "+
 				"00000000-0000-0000-0000-000000000000, AWS.SimpleQueueService.NonExistentQueue: .")(err.(*utils.GError))
 	})
@@ -155,9 +155,9 @@ var _ = Describe("SQS Connection Tests", Ordered, func() {
 
 		// Finally, verify the error we received
 		Expect(output).Should(BeNil())
-		testutils.ErrorVerifier("test", "sqs", "/goutils/awssvc/sqs/conn.go", "SQSConnection", "SendMessage", 45,
+		testutils.ErrorVerifier("test", "sqs", "/goutils/awssvc/sqs/conn.go", "SQSConnection", "SendMessage", 47,
 			testutils.InnerErrorVerifier("json: unsupported type: chan error"), "Failed to convert payload to JSON",
-			"[test] sqs.SQSConnection.SendMessage (/goutils/awssvc/sqs/conn.go 45): Failed to convert payload to JSON, "+
+			"[test] sqs.SQSConnection.SendMessage (/goutils/awssvc/sqs/conn.go 47): Failed to convert payload to JSON, "+
 				"Inner: json: unsupported type: chan error.")(err.(*utils.GError))
 	})
 
@@ -186,11 +186,11 @@ var _ = Describe("SQS Connection Tests", Ordered, func() {
 
 		// Finally, verify the error we received
 		Expect(output).Should(BeNil())
-		testutils.ErrorVerifier("test", "sqs", "/goutils/awssvc/sqs/conn.go", "SQSConnection", "SendMessage", 63,
+		testutils.ErrorVerifier("test", "sqs", "/goutils/awssvc/sqs/conn.go", "SQSConnection", "SendMessage", 65,
 			testutils.InnerErrorVerifier("operation error SQS: SendMessage, https response error StatusCode: "+
 				"400, RequestID: 00000000-0000-0000-0000-000000000000, api error AWS.SimpleQueueService."+
 				"NonExistentQueue: The specified queue does not exist for this wsdl version."), "Failed "+
-				"to send SQS message to \"fail-queue\"", "[test] sqs.SQSConnection.SendMessage (/goutils/awssvc/sqs/conn.go 63): "+
+				"to send SQS message to \"fail-queue\"", "[test] sqs.SQSConnection.SendMessage (/goutils/awssvc/sqs/conn.go 65): "+
 				"Failed to send SQS message to \"fail-queue\", Inner: operation error SQS: SendMessage, "+
 				"https response error StatusCode: 400, RequestID: 00000000-0000-0000-0000-000000000000, "+
 				"api error AWS.SimpleQueueService.NonExistentQueue: The specified queue does not exist "+
@@ -222,7 +222,6 @@ var _ = Describe("SQS Connection Tests", Ordered, func() {
 		// Now, attempt to send the message to SQS; this should not fail
 		output, err := client.SendMessage(context.Background(), queueUrl, item, WithDeduplicationID("derp"),
 			WithMessageGroupID("derp1"), WithMessageAttribute("derp", &types.MessageAttributeValue{DataType: aws.String("string"), StringValue: aws.String("derp")}))
-		fmt.Printf("Error: %v\n", err)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		// Create a request to receive the message we just sent
@@ -252,5 +251,169 @@ var _ = Describe("SQS Connection Tests", Ordered, func() {
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(check.Key).Should(Equal("test-key"))
 		Expect(check.Value).Should(Equal("test-value"))
+	})
+
+	// Tests that, if the payload cannot be converted to JSON, then calling SendMessages will result in an error
+	It("SendMessages - JSON marshal fails - Error", func() {
+
+		// First, create a new logger and discard its output
+		logger := utils.NewLogger("testd", "test")
+		logger.Discard()
+
+		// Next, inject our test config and logger into a new SQS connection
+		client := NewSQSConnection(cfg, logger)
+
+		// Create a type that will define the data we're sending to SQS
+		type Test struct {
+			Chan chan error
+			Key  int
+		}
+
+		// Create the data that we'll attempt to send to SQS
+		items := []interface{}{
+			Test{
+				Chan: make(chan error),
+				Key:  42,
+			},
+			Test{
+				Chan: make(chan error),
+				Key:  84,
+			},
+		}
+
+		// Now, attempt to send the messages to SQS; this should fail
+		output, err := client.SendMessages(context.Background(), queueUrl, items,
+			WithBatchDeduplicationID(func(i int) string { return "derp1" }),
+			WithBatchMessageGroupID(func(i int) string { return "derp2" }),
+			WithBatchMessageAttribute("derp", func(i int) *types.MessageAttributeValue {
+				return &types.MessageAttributeValue{DataType: aws.String("string"), StringValue: aws.String("derp3")}
+			}))
+
+		// Finally, verify the error we received
+		Expect(output).Should(BeNil())
+		testutils.ErrorVerifier("test", "sqs", "/goutils/awssvc/sqs/conn.go", "SQSConnection", "SendMessages", 88,
+			testutils.InnerErrorVerifier("json: unsupported type: chan error"), "Failed to convert payload to JSON",
+			"[test] sqs.SQSConnection.SendMessages (/goutils/awssvc/sqs/conn.go 88): Failed to convert payload to JSON, "+
+				"Inner: json: unsupported type: chan error.")(err.(*utils.GError))
+	})
+
+	// Tests that, if the the call to SendMessageBatch fails, then calling SendMessages will result in an error
+	It("SendMessages - SendMessageBatch fails - Error", func() {
+
+		// First, create a new logger and discard its output
+		logger := utils.NewLogger("testd", "test")
+		logger.Discard()
+
+		// Next, inject our test config and logger into a new SQS connection
+		client := NewSQSConnection(cfg, logger)
+
+		// Create a type that will define the data we're sending to SQS
+		type Test struct {
+			Key   string
+			Value string
+		}
+
+		// Create the data that we'll attempt to send to SQS
+		items := []interface{}{
+			Test{
+				Key:   "test-key1",
+				Value: "test-value2",
+			},
+			Test{
+				Key:   "test-key1",
+				Value: "test-value2",
+			},
+		}
+
+		// Now, attempt to send the messages to SQS; this should fail
+		output, err := client.SendMessages(context.Background(), "fail-queue", items,
+			WithBatchDeduplicationID(func(i int) string { return "derp1" }),
+			WithBatchMessageGroupID(func(i int) string { return "derp2" }),
+			WithBatchMessageAttribute("derp", func(i int) *types.MessageAttributeValue {
+				return &types.MessageAttributeValue{DataType: aws.String("string"), StringValue: aws.String("derp3")}
+			}))
+
+		// Finally, verify the error we received
+		Expect(output).Should(BeNil())
+		testutils.ErrorVerifier("test", "sqs", "/goutils/awssvc/sqs/conn.go", "SQSConnection", "SendMessages", 107,
+			testutils.InnerErrorVerifier("operation error SQS: SendMessageBatch, https response error StatusCode: "+
+				"400, RequestID: 00000000-0000-0000-0000-000000000000, api error AWS.SimpleQueueService."+
+				"NonExistentQueue: The specified queue does not exist for this wsdl version."), "Failed "+
+				"to send SQS batched message to \"fail-queue\"", "[test] sqs.SQSConnection.SendMessages "+
+				"(/goutils/awssvc/sqs/conn.go 107): Failed to send SQS batched message to \"fail-queue\", "+
+				"Inner: operation error SQS: SendMessageBatch, https response error StatusCode: 400, "+
+				"RequestID: 00000000-0000-0000-0000-000000000000, api error AWS.SimpleQueueService.NonExistentQueue: "+
+				"The specified queue does not exist for this wsdl version..")(err.(*utils.GError))
+	})
+
+	// Tests that, if no errors occur, then calling SendMessages will send the data to SQS to be received
+	It("SendMessages - No failures - Sent", func() {
+
+		// First, create a new logger and discard its output
+		logger := utils.NewLogger("testd", "test")
+		logger.Discard()
+
+		// Next, inject our test config and logger into a new SQS connection
+		client := NewSQSConnection(cfg, logger)
+
+		// Create a data type we'll send to SQS
+		type Test struct {
+			Key   string
+			Value string
+		}
+
+		// Create an instance of our test type
+		items := []interface{}{
+			Test{
+				Key:   "test-key1",
+				Value: "test-value1",
+			},
+			Test{
+				Key:   "test-key2",
+				Value: "test-value2",
+			},
+		}
+
+		// Now, attempt to send the message to SQS; this should not fail
+		output, err := client.SendMessages(context.Background(), queueUrl, items,
+			WithBatchDeduplicationID(func(i int) string { return "derp1" }),
+			WithBatchMessageGroupID(func(i int) string { return "derp2" }),
+			WithBatchMessageAttribute("derp", func(i int) *types.MessageAttributeValue {
+				return &types.MessageAttributeValue{DataType: aws.String("string"), StringValue: aws.String("derp3")}
+			}))
+		Expect(err).ShouldNot(HaveOccurred())
+
+		// Create a request to receive the message we just sent
+		request := sqs.ReceiveMessageInput{
+			QueueUrl:              aws.String(queueUrl),
+			AttributeNames:        []types.QueueAttributeName{types.QueueAttributeNameAll},
+			MessageAttributeNames: []string{string(types.QueueAttributeNameAll)},
+			MaxNumberOfMessages:   2,
+		}
+
+		// Finally, attempt to receive the message we just sent; this should not fail
+		confirm, err := client.sqs.ReceiveMessage(context.Background(), &request)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		// Confirm the body of the messages that were sent against those received
+		Expect(confirm.Messages).Should(HaveLen(2))
+		for i := 0; i < len(confirm.Messages); i++ {
+
+			// First, verify that the message attributes, message ID and body match
+			Expect(output.Successful[i].MD5OfMessageAttributes).Should(Equal(confirm.Messages[i].MD5OfMessageAttributes))
+			Expect(output.Successful[i].MD5OfMessageBody).Should(Equal(confirm.Messages[i].MD5OfBody))
+			Expect(output.Successful[i].MessageId).Should(Equal(confirm.Messages[i].MessageId))
+
+			// Next, attempt to decode the message body from base-64 string; this should not fail
+			decoded, err := base64.StdEncoding.DecodeString(*confirm.Messages[i].Body)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Finally, attempt to deserialize the message from JSON and verify the data; this should not fail
+			var check Test
+			err = json.Unmarshal(decoded, &check)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(check.Key).Should(Equal(fmt.Sprintf("test-key%d", i+1)))
+			Expect(check.Value).Should(Equal(fmt.Sprintf("test-value%d", i+1)))
+		}
 	})
 })
