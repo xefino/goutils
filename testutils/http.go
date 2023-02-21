@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -14,6 +15,9 @@ import (
 
 // GenerateResponse creates an HTTP response we can use in our testing
 func GenerateResponse(request *http.Request, code int, item string) *http.Response {
+
+	// Simulate latency
+	time.Sleep(20 * time.Millisecond)
 
 	// If we have data then enclose it in a ReadCloser, otherwise set it to NoBody
 	var body io.ReadCloser
