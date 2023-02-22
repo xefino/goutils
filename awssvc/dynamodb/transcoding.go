@@ -5,8 +5,40 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
+
+// MarshalMap converts the object to a mapping of DynamoDB attribute values
+func (conn *DatabaseConnection) MarshalMap(in interface{}) (map[string]types.AttributeValue, error) {
+	attrs, err := attributevalue.MarshalMapWithOptions(in,
+		func(options *attributevalue.EncoderOptions) { options.TagKey = conn.tagKey })
+	if err != nil {
+		return nil, conn.logger.FrameError(2, err, "Failed to marshal %T to DynamoDB attributes", in)
+	}
+
+	return attrs, nil
+}
+
+// UnmarshalMap converts a mapping of DynamoDB attribute values to an object
+func (conn *DatabaseConnection) UnmarshalMap(attrs map[string]types.AttributeValue, out interface{}) error {
+	if err := attributevalue.UnmarshalMapWithOptions(attrs, out,
+		func(options *attributevalue.DecoderOptions) { options.TagKey = conn.tagKey }); err != nil {
+		return conn.logger.FrameError(2, err, "Failed to unmarshal DynamoDB response to %T", out)
+	}
+
+	return nil
+}
+
+// UnmarshalList converts a list of DynamoDB attribute value mappings to a list of objects
+func (conn *DatabaseConnection) UnmarshalList(attrs []map[string]types.AttributeValue, out interface{}) error {
+	if err := attributevalue.UnmarshalListOfMapsWithOptions(attrs, out,
+		func(options *attributevalue.DecoderOptions) { options.TagKey = conn.tagKey }); err != nil {
+		return conn.logger.FrameError(2, err, "Failed to unmarshal DynamoDB response to %T", out)
+	}
+
+	return nil
+}
 
 // AttributeValuesToJSON attempts to convert a mapping of attribute values to a properly-formatted JSON string
 func AttributeValuesToJSON(attrs map[string]types.AttributeValue) ([]byte, error) {

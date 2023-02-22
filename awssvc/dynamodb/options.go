@@ -34,3 +34,12 @@ type WithBackoffMaxElapsed time.Duration
 func (w WithBackoffMaxElapsed) Apply(conn *DatabaseConnection) {
 	conn.maxElapsed = time.Duration(w)
 }
+
+// WithTagKey allows the user to set the field tag that should be used when marshalling data to
+// DynamoDB attribute values or when unmarshalling data from DynamoDB attribute values
+type WithTagKey string
+
+// Apply modifies the DatabaseConnection so that it has the tag key defined by this object
+func (w WithTagKey) Apply(conn *DatabaseConnection) {
+	conn.tagKey = string(w)
+}

@@ -19,6 +19,7 @@ type DatabaseConnection struct {
 	startInterval time.Duration
 	endInterval   time.Duration
 	maxElapsed    time.Duration
+	tagKey        string
 	logger        *utils.Logger
 }
 
@@ -36,6 +37,7 @@ func FromClient(inner DynamoDBAPI, logger *utils.Logger, opts ...IDynamoDBOption
 		startInterval: 500,
 		endInterval:   60000,
 		maxElapsed:    900000,
+		tagKey:        "json",
 		logger:        logger.ChangeFrame(4),
 	}
 
@@ -112,8 +114,8 @@ func (conn *DatabaseConnection) DeleteItem(ctx context.Context,
 	return output, err
 }
 
-// BatchWrite makes a number of write requests against a table in DynamoDB. This
-// function does not return collection or capacity statistics.
+// BatchWrite makes a number of write requests against a table in DynamoDB. This function does not
+// return collection or capacity statistics.
 func (conn *DatabaseConnection) BatchWrite(ctx context.Context, tableName string,
 	requests ...types.WriteRequest) error {
 
@@ -156,8 +158,8 @@ func (conn *DatabaseConnection) BatchWrite(ctx context.Context, tableName string
 	return conn.BatchWrite(ctx, tableName, retries...)
 }
 
-// Query makes a search on a DynamoDB table and returns the results. This function does not
-// return capacity statistics, just the queried results.
+// Query makes a search on a particular partition in a DynamoDB table and returns the results. This
+// function does not return capacity statistics, just the queried results.
 func (conn *DatabaseConnection) Query(ctx context.Context,
 	input *dynamodb.QueryInput) ([]map[string]types.AttributeValue, error) {
 	results := make([]map[string]types.AttributeValue, 0)
@@ -182,6 +184,45 @@ func (conn *DatabaseConnection) Query(ctx context.Context,
 		results = append(results, output.Items...)
 
 		// Finally, check if the lsat-evaluated key is nil. If it is then we've finished our query so
+		// we can break out of the loop. Otherwise, we'll use it to set the exclusive start key on the
+		// input so we can get the next page
+		if output.LastEvaluatedKey != nil {
+			input.ExclusiveStartKey = output.LastEvaluatedKey
+		} else {
+			break
+		}
+	}
+
+	// Return the accumulated results
+	return results, nil
+}
+
+// Scan makes a search on an entire DynamoDB table and returns the result. This function does not return
+// capacity statistics, just the scanned results
+func (conn *DatabaseConnection) Scan(ctx context.Context,
+	input *dynamodb.ScanInput) ([]map[string]types.AttributeValue, error) {
+	results := make([]map[string]types.AttributeValue, 0)
+
+	// We'll start a loop that will scan each page of results until all the pages have been retrieved
+	for index := 0; ; index++ {
+
+		// First, attempt the scan with a backoff-retry loop
+		var output *dynamodb.ScanOutput
+		err := conn.doRetry(ctx, *input.TableName, fmt.Sprintf("SCAN(%d)", index), func() error {
+			var inner error
+			output, inner = conn.db.Scan(ctx, input)
+			return inner
+		})
+
+		// If the scan failed then pass the error back up
+		if err != nil {
+			return nil, err
+		}
+
+		// Next, append the results from the query to our accumulated list of results
+		results = append(results, output.Items...)
+
+		// Finally, check if the lsat-evaluated key is nil. If it is then we've finished our scan so
 		// we can break out of the loop. Otherwise, we'll use it to set the exclusive start key on the
 		// input so we can get the next page
 		if output.LastEvaluatedKey != nil {

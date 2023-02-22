@@ -6,7 +6,6 @@ import (
 	"sort"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/aws/smithy-go"
@@ -109,30 +108,30 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 		Entry("ProvisionedThroughputExceededException - Retried",
 			&types.ProvisionedThroughputExceededException{Message: aws.String("")}, true,
 			testutils.ErrorVerifier("test", "dynamodb", "/goutils/awssvc/dynamodb/conn_test.go", "glob",
-				"", 85, testutils.InnerErrorVerifier("operation error : , ProvisionedThroughputExceededException: "),
+				"", 84, testutils.InnerErrorVerifier("operation error : , ProvisionedThroughputExceededException: "),
 				"GET request to TEST_TABLE in DynamoDB failed", "[test] dynamodb.glob. "+
-					"(/goutils/awssvc/dynamodb/conn_test.go 85): GET request to TEST_TABLE in DynamoDB failed, "+
+					"(/goutils/awssvc/dynamodb/conn_test.go 84): GET request to TEST_TABLE in DynamoDB failed, "+
 					"Inner: operation error : , ProvisionedThroughputExceededException: .")),
 		Entry("RequestLimitExceeded - Retried",
 			&types.RequestLimitExceeded{Message: aws.String("")}, true,
 			testutils.ErrorVerifier("test", "dynamodb", "/goutils/awssvc/dynamodb/conn_test.go", "glob",
-				"", 85, testutils.InnerErrorVerifier("operation error : , RequestLimitExceeded: "),
+				"", 84, testutils.InnerErrorVerifier("operation error : , RequestLimitExceeded: "),
 				"GET request to TEST_TABLE in DynamoDB failed", "[test] dynamodb.glob. "+
-					"(/goutils/awssvc/dynamodb/conn_test.go 85): GET request to TEST_TABLE in DynamoDB failed, "+
+					"(/goutils/awssvc/dynamodb/conn_test.go 84): GET request to TEST_TABLE in DynamoDB failed, "+
 					"Inner: operation error : , RequestLimitExceeded: .")),
 		Entry("InternalServerError - Retried",
 			&types.InternalServerError{Message: aws.String("")}, true,
 			testutils.ErrorVerifier("test", "dynamodb", "/goutils/awssvc/dynamodb/conn_test.go", "glob",
-				"", 85, testutils.InnerErrorVerifier("operation error : , InternalServerError: "),
+				"", 84, testutils.InnerErrorVerifier("operation error : , InternalServerError: "),
 				"GET request to TEST_TABLE in DynamoDB failed", "[test] dynamodb.glob. "+
-					"(/goutils/awssvc/dynamodb/conn_test.go 85): GET request to TEST_TABLE in DynamoDB failed, "+
+					"(/goutils/awssvc/dynamodb/conn_test.go 84): GET request to TEST_TABLE in DynamoDB failed, "+
 					"Inner: operation error : , InternalServerError: .")),
 		Entry("ResourceNotFoundException - Not Retried",
 			&types.ResourceNotFoundException{Message: aws.String("")}, false,
 			testutils.ErrorVerifier("test", "dynamodb", "/goutils/awssvc/dynamodb/conn_test.go", "glob",
-				"", 85, testutils.InnerErrorVerifier("operation error : , ResourceNotFoundException: "),
+				"", 84, testutils.InnerErrorVerifier("operation error : , ResourceNotFoundException: "),
 				"GET request to TEST_TABLE in DynamoDB failed", "[test] dynamodb.glob. "+
-					"(/goutils/awssvc/dynamodb/conn_test.go 85): GET request to TEST_TABLE in DynamoDB failed, "+
+					"(/goutils/awssvc/dynamodb/conn_test.go 84): GET request to TEST_TABLE in DynamoDB failed, "+
 					"Inner: operation error : , ResourceNotFoundException: .")))
 
 	// Test that, if the inner PutItem request fails, then calling PutItem will return an error
@@ -149,8 +148,7 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 		}
 
 		// Attempt to marshal the test object into a DynamoDB item structure
-		attrs, err := attributevalue.MarshalMapWithOptions(&data,
-			func(eo *attributevalue.EncoderOptions) { eo.TagKey = "json" })
+		attrs, err := conn.MarshalMap(data)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		// Now, create our put-item input from our attribute data
@@ -171,10 +169,10 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 		Expect(err).Should(HaveOccurred())
 		Expect(casted.TableName).Should(Equal("FAKE_TABLE"))
 		testutils.ErrorVerifier("test", "dynamodb", "/goutils/awssvc/dynamodb/conn.go", "DatabaseConnection",
-			"PutItem", 58, testutils.InnerErrorPrefixSuffixVerifier("operation error DynamoDB: PutItem, "+
+			"PutItem", 60, testutils.InnerErrorPrefixSuffixVerifier("operation error DynamoDB: PutItem, "+
 				"https response error StatusCode: 400, RequestID: ", ", ResourceNotFoundException: "),
 			"PUT request to FAKE_TABLE in DynamoDB failed", "[test] dynamodb.DatabaseConnection.PutItem "+
-				"(/goutils/awssvc/dynamodb/conn.go 58): PUT request to FAKE_TABLE in DynamoDB failed, Inner: "+
+				"(/goutils/awssvc/dynamodb/conn.go 60): PUT request to FAKE_TABLE in DynamoDB failed, Inner: "+
 				"operation error DynamoDB: PutItem, https response error StatusCode: 400, RequestID: ",
 			", ResourceNotFoundException: .")(casted.GError)
 	})
@@ -194,8 +192,7 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 		}
 
 		// Attempt to marshal the test object into a DynamoDB item structure
-		attrs, err := attributevalue.MarshalMapWithOptions(&data,
-			func(eo *attributevalue.EncoderOptions) { eo.TagKey = "json" })
+		attrs, err := conn.MarshalMap(data)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		// Next, create our put-item input from our attribute data
@@ -221,8 +218,7 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 
 		// Attempt to extract our test object from the response
 		var read *testObject
-		err = attributevalue.UnmarshalMapWithOptions(gOut.Item, &read,
-			func(eo *attributevalue.DecoderOptions) { eo.TagKey = "json" })
+		err = conn.UnmarshalMap(gOut.Item, &read)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		// Verify the data on the test object
@@ -245,8 +241,7 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 		}
 
 		// Attempt to marshal the test object into a DynamoDB item structure
-		attrs, err := attributevalue.MarshalMapWithOptions(&data,
-			func(eo *attributevalue.EncoderOptions) { eo.TagKey = "json" })
+		attrs, err := conn.MarshalMap(data)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		// Next, attempt to write a test object to the database; this should not fail
@@ -273,10 +268,10 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 		Expect(err).Should(HaveOccurred())
 		Expect(casted.TableName).Should(Equal("FAKE_TABLE"))
 		testutils.ErrorVerifier("test", "dynamodb", "/goutils/awssvc/dynamodb/conn.go", "DatabaseConnection",
-			"GetItem", 74, testutils.InnerErrorPrefixSuffixVerifier("operation error DynamoDB: GetItem, "+
+			"GetItem", 76, testutils.InnerErrorPrefixSuffixVerifier("operation error DynamoDB: GetItem, "+
 				"https response error StatusCode: 400, RequestID: ", ", ResourceNotFoundException: "),
 			"GET request to FAKE_TABLE in DynamoDB failed", "[test] dynamodb.DatabaseConnection.GetItem "+
-				"(/goutils/awssvc/dynamodb/conn.go 74): GET request to FAKE_TABLE in DynamoDB failed, Inner: "+
+				"(/goutils/awssvc/dynamodb/conn.go 76): GET request to FAKE_TABLE in DynamoDB failed, Inner: "+
 				"operation error DynamoDB: GetItem, https response error StatusCode: 400, RequestID: ",
 			", ResourceNotFoundException: .")(casted.GError)
 	})
@@ -296,8 +291,7 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 		}
 
 		// Attempt to marshal the test object into a DynamoDB item structure
-		attrs, err := attributevalue.MarshalMapWithOptions(&data,
-			func(eo *attributevalue.EncoderOptions) { eo.TagKey = "json" })
+		attrs, err := conn.MarshalMap(data)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		// Next, attempt to write a test object to the database; this should not fail
@@ -320,8 +314,7 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 
 		// Finally, unmarshal the output response into a test object
 		var written *testObject
-		err = attributevalue.UnmarshalMapWithOptions(output.Item, &written,
-			func(eo *attributevalue.DecoderOptions) { eo.TagKey = "json" })
+		err = conn.UnmarshalMap(output.Item, &written)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		// Verify the data on the test object
@@ -344,8 +337,7 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 		}
 
 		// Attempt to marshal the test object into a DynamoDB item structure
-		attrs, err := attributevalue.MarshalMapWithOptions(&data,
-			func(eo *attributevalue.EncoderOptions) { eo.TagKey = "json" })
+		attrs, err := conn.MarshalMap(data)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		// Next, attempt to write a test object to the database; this should not fail
@@ -374,10 +366,10 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 		Expect(err).Should(HaveOccurred())
 		Expect(casted.TableName).Should(Equal("FAKE_TABLE"))
 		testutils.ErrorVerifier("test", "dynamodb", "/goutils/awssvc/dynamodb/conn.go", "DatabaseConnection",
-			"UpdateItem", 90, testutils.InnerErrorPrefixSuffixVerifier("operation error DynamoDB: UpdateItem, "+
+			"UpdateItem", 92, testutils.InnerErrorPrefixSuffixVerifier("operation error DynamoDB: UpdateItem, "+
 				"https response error StatusCode: 400, RequestID: ", ", ResourceNotFoundException: "),
 			"UPDATE request to FAKE_TABLE in DynamoDB failed", "[test] dynamodb.DatabaseConnection.UpdateItem "+
-				"(/goutils/awssvc/dynamodb/conn.go 90): UPDATE request to FAKE_TABLE in DynamoDB failed, Inner: "+
+				"(/goutils/awssvc/dynamodb/conn.go 92): UPDATE request to FAKE_TABLE in DynamoDB failed, Inner: "+
 				"operation error DynamoDB: UpdateItem, https response error StatusCode: 400, RequestID: ",
 			", ResourceNotFoundException: .")(casted.GError)
 	})
@@ -397,8 +389,7 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 		}
 
 		// Attempt to marshal the test object into a DynamoDB item structure
-		attrs, err := attributevalue.MarshalMapWithOptions(&data,
-			func(eo *attributevalue.EncoderOptions) { eo.TagKey = "json" })
+		attrs, err := conn.MarshalMap(data)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		// Next, attempt to write a test object to the database; this should not fail
@@ -425,8 +416,7 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 
 		// Finally, unmarshal the output response into a test object
 		var updated *testObject
-		err = attributevalue.UnmarshalMapWithOptions(output.Attributes, &updated,
-			func(eo *attributevalue.DecoderOptions) { eo.TagKey = "json" })
+		err = conn.UnmarshalMap(output.Attributes, &updated)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		// Verify the data on the test object
@@ -449,8 +439,7 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 		}
 
 		// Attempt to marshal the test object into a DynamoDB item structure
-		attrs, err := attributevalue.MarshalMapWithOptions(&data,
-			func(eo *attributevalue.EncoderOptions) { eo.TagKey = "json" })
+		attrs, err := conn.MarshalMap(data)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		// Next, attempt to write a test object to the database; this should not fail
@@ -479,10 +468,10 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 		Expect(err).Should(HaveOccurred())
 		Expect(casted.TableName).Should(Equal("FAKE_TABLE"))
 		testutils.ErrorVerifier("test", "dynamodb", "/goutils/awssvc/dynamodb/conn.go", "DatabaseConnection",
-			"DeleteItem", 106, testutils.InnerErrorPrefixSuffixVerifier("operation error DynamoDB: DeleteItem, "+
+			"DeleteItem", 108, testutils.InnerErrorPrefixSuffixVerifier("operation error DynamoDB: DeleteItem, "+
 				"https response error StatusCode: 400, RequestID: ", ", ResourceNotFoundException: "),
 			"DELETE request to FAKE_TABLE in DynamoDB failed", "[test] dynamodb.DatabaseConnection.DeleteItem "+
-				"(/goutils/awssvc/dynamodb/conn.go 106): DELETE request to FAKE_TABLE in DynamoDB failed, Inner: "+
+				"(/goutils/awssvc/dynamodb/conn.go 108): DELETE request to FAKE_TABLE in DynamoDB failed, Inner: "+
 				"operation error DynamoDB: DeleteItem, https response error StatusCode: 400, RequestID: ",
 			", ResourceNotFoundException: .")(casted.GError)
 	})
@@ -502,8 +491,7 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 		}
 
 		// Attempt to marshal the test object into a DynamoDB item structure
-		attrs, err := attributevalue.MarshalMapWithOptions(&data,
-			func(eo *attributevalue.EncoderOptions) { eo.TagKey = "json" })
+		attrs, err := conn.MarshalMap(data)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		// Next, attempt to write a test object to the database; this should not fail
@@ -527,8 +515,7 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 
 		// Attempt to unmarshal the output response into a test object
 		var updated *testObject
-		err = attributevalue.UnmarshalMapWithOptions(dOut.Attributes, &updated,
-			func(eo *attributevalue.DecoderOptions) { eo.TagKey = "json" })
+		err = conn.UnmarshalMap(dOut.Attributes, &updated)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		// Verify the data on the test object
@@ -564,8 +551,7 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 		}
 
 		// Now, attempt to marshal the test object into a DynamoDB item structure
-		attrs, err := attributevalue.MarshalMapWithOptions(&data,
-			func(eo *attributevalue.EncoderOptions) { eo.TagKey = "json" })
+		attrs, err := conn.MarshalMap(data)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		// Finally, attempt to batch-write our requests to DynamoDB; this should fail
@@ -577,10 +563,10 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 		Expect(err).Should(HaveOccurred())
 		Expect(casted.TableName).Should(Equal("FAKE_TABLE"))
 		testutils.ErrorVerifier("test", "dynamodb", "/goutils/awssvc/dynamodb/conn.go", "DatabaseConnection",
-			"batchWriteInner", 215, testutils.InnerErrorPrefixSuffixVerifier("operation error DynamoDB: BatchWriteItem, "+
+			"batchWriteInner", 256, testutils.InnerErrorPrefixSuffixVerifier("operation error DynamoDB: BatchWriteItem, "+
 				"https response error StatusCode: 400, RequestID: ", ", ResourceNotFoundException: "),
 			"BATCH WRITE request to FAKE_TABLE in DynamoDB failed", "[test] dynamodb.DatabaseConnection.batchWriteInner "+
-				"(/goutils/awssvc/dynamodb/conn.go 215): BATCH WRITE request to FAKE_TABLE in DynamoDB failed, Inner: "+
+				"(/goutils/awssvc/dynamodb/conn.go 256): BATCH WRITE request to FAKE_TABLE in DynamoDB failed, Inner: "+
 				"operation error DynamoDB: BatchWriteItem, https response error StatusCode: 400, RequestID: ",
 			", ResourceNotFoundException: .")(casted.GError)
 	})
@@ -604,8 +590,7 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 			}
 
 			// Next, attempt to marshal the test object into a DynamoDB item structure
-			attrs, err := attributevalue.MarshalMapWithOptions(&data,
-				func(eo *attributevalue.EncoderOptions) { eo.TagKey = "json" })
+			attrs, err := conn.MarshalMap(data)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			// Finally, create the write request and add it to our list of such requests
@@ -634,8 +619,7 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 
 		// Attempt to deserialize the results into a list of test objects; this should not fail
 		var results []*testObject
-		err = attributevalue.UnmarshalListOfMapsWithOptions(output.Items, &results,
-			func(eo *attributevalue.DecoderOptions) { eo.TagKey = "json" })
+		err = conn.UnmarshalList(output.Items, &results)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		// Sort the results by sort key to ensure that the test either passes or fails deterministicallyu
@@ -675,10 +659,10 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 		Expect(err).Should(HaveOccurred())
 		Expect(casted.TableName).Should(Equal("FAKE_TABLE"))
 		testutils.ErrorVerifier("test", "dynamodb", "/goutils/awssvc/dynamodb/conn.go", "DatabaseConnection",
-			"Query", 170, testutils.InnerErrorPrefixSuffixVerifier("operation error DynamoDB: Query, "+
+			"Query", 172, testutils.InnerErrorPrefixSuffixVerifier("operation error DynamoDB: Query, "+
 				"https response error StatusCode: 400, RequestID: ", ", ResourceNotFoundException: "),
 			"QUERY(0) request to FAKE_TABLE in DynamoDB failed", "[test] dynamodb.DatabaseConnection.Query "+
-				"(/goutils/awssvc/dynamodb/conn.go 170): QUERY(0) request to FAKE_TABLE in DynamoDB failed, Inner: "+
+				"(/goutils/awssvc/dynamodb/conn.go 172): QUERY(0) request to FAKE_TABLE in DynamoDB failed, Inner: "+
 				"operation error DynamoDB: Query, https response error StatusCode: 400, RequestID: ",
 			", ResourceNotFoundException: .")(casted.GError)
 	})
@@ -703,8 +687,7 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 			}
 
 			// Next, attempt to marshal the test object into a DynamoDB item structure
-			attrs, err := attributevalue.MarshalMapWithOptions(&data,
-				func(eo *attributevalue.EncoderOptions) { eo.TagKey = "json" })
+			attrs, err := conn.MarshalMap(data)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			// Finally, create the write request and add it to our list of such requests
@@ -732,8 +715,103 @@ var _ = Describe("Database Connection Tests", Ordered, func() {
 
 		// Attempt to deserialize the results into a list of test objects; this should not fail
 		var results []*testObject
-		err = attributevalue.UnmarshalListOfMapsWithOptions(items, &results,
-			func(eo *attributevalue.DecoderOptions) { eo.TagKey = "json" })
+		err = conn.UnmarshalList(items, &results)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		// Sort the results by sort key to ensure that the test either passes or fails deterministicallyu
+		sort.Slice(results, func(i, j int) bool {
+			return results[i].Data < results[j].Data
+		})
+
+		// Verify the results that we retrieved with the query
+		for i := 0; i < size; i++ {
+			Expect(results[i].ID).Should(Equal("test_id"))
+			Expect(results[i].SortKey).Should(Equal(fmt.Sprintf("test|sort|key|%d", i)))
+			Expect(results[i].Data).Should(Equal(i))
+		}
+	})
+
+	// Test that, if the inner Scan request fails, then calling Scan will return an error
+	It("Scan - Fails - Error", func() {
+
+		// First, create our test database connection from our test config
+		conn := createTestConnection(cfg)
+
+		// Next, attempt to scan items from the table; this should fail
+		items, err := conn.Scan(context.Background(), &dynamodb.ScanInput{
+			TableName:                aws.String("FAKE_TABLE"),
+			ConsistentRead:           aws.Bool(true),
+			FilterExpression:         aws.String("#id = :id AND begins_with(#sk, :sk)"),
+			ExpressionAttributeNames: map[string]string{"#id": "id", "#sk": "sort_key"},
+			ExpressionAttributeValues: map[string]types.AttributeValue{
+				":id": &types.AttributeValueMemberS{Value: "test_id"},
+				":sk": &types.AttributeValueMemberS{Value: "test|sort|key|"},
+			},
+		})
+
+		// Finally, verify the failure
+		casted := err.(*Error)
+		Expect(items).Should(BeEmpty())
+		Expect(err).Should(HaveOccurred())
+		Expect(casted.TableName).Should(Equal("FAKE_TABLE"))
+		testutils.ErrorVerifier("test", "dynamodb", "/goutils/awssvc/dynamodb/conn.go", "DatabaseConnection",
+			"Scan", 211, testutils.InnerErrorPrefixSuffixVerifier("operation error DynamoDB: Scan, "+
+				"https response error StatusCode: 400, RequestID: ", ", ResourceNotFoundException: "),
+			"SCAN(0) request to FAKE_TABLE in DynamoDB failed", "[test] dynamodb.DatabaseConnection.Scan "+
+				"(/goutils/awssvc/dynamodb/conn.go 211): SCAN(0) request to FAKE_TABLE in DynamoDB failed, Inner: "+
+				"operation error DynamoDB: Scan, https response error StatusCode: 400, RequestID: ",
+			", ResourceNotFoundException: .")(casted.GError)
+	})
+
+	// Test that, if no failure occurs, then calling Scan will result in the items being retrieved
+	// from the table in DynamoDB
+	It("Scan - No failures - Data returned", func() {
+
+		// First, create our test database connection from our test config
+		conn := createTestConnection(cfg)
+
+		// Next, create our list of write requests
+		size := 50
+		requests := make([]types.WriteRequest, size)
+		for i := 0; i < size; i++ {
+
+			// First, create our test object with some fake data
+			data := testObject{
+				ID:      "test_id",
+				SortKey: fmt.Sprintf("test|sort|key|%d", i),
+				Data:    i,
+			}
+
+			// Next, attempt to marshal the test object into a DynamoDB item structure
+			attrs, err := conn.MarshalMap(data)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			// Finally, create the write request and add it to our list of such requests
+			requests[i] = types.WriteRequest{
+				PutRequest: &types.PutRequest{
+					Item: attrs,
+				},
+			}
+		}
+
+		// Now, attempt to batch-write our requests to DynamoDB; this should not fail
+		err := conn.BatchWrite(context.Background(), "TEST_TABLE", requests...)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		// Finally, attempt to query the data in DynamoDB; this should not fail
+		items, err := conn.Scan(context.Background(), &dynamodb.ScanInput{
+			TableName:                aws.String("TEST_TABLE"),
+			ConsistentRead:           aws.Bool(true),
+			Limit:                    aws.Int32(25),
+			FilterExpression:         aws.String("#id = :id AND begins_with(#sk, :sk)"),
+			ExpressionAttributeNames: map[string]string{"#id": "id", "#sk": "sort_key"},
+			ExpressionAttributeValues: map[string]types.AttributeValue{
+				":id": &types.AttributeValueMemberS{Value: "test_id"},
+				":sk": &types.AttributeValueMemberS{Value: "test|sort|key|"}}})
+
+		// Attempt to deserialize the results into a list of test objects; this should not fail
+		var results []*testObject
+		err = conn.UnmarshalList(items, &results)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		// Sort the results by sort key to ensure that the test either passes or fails deterministicallyu
@@ -755,7 +833,7 @@ func createTestConnection(cfg aws.Config) *DatabaseConnection {
 	logger := utils.NewLogger("testd", "test")
 	logger.Discard()
 	return NewDatabaseConnection(cfg, logger,
-		WithBackoffStart(1), WithBackoffEnd(5), WithBackoffMaxElapsed(10))
+		WithBackoffStart(1), WithBackoffEnd(5), WithBackoffMaxElapsed(10), WithTagKey("json"))
 }
 
 // Helper type that is used to test various error conditions as returned by DynamoDB

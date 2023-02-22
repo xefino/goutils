@@ -89,19 +89,19 @@ var _ = Describe("Logger Tests", func() {
 			"String parameter: \"test %t.derp\"\n"))
 	})
 
-	// Tests that logging an error works as expected
-	It("Error - Works", func() {
+	// Tests that logging an error with a custom frame works as expected
+	It("FrameError - Works", func() {
 
 		// First, create our logger from a test service with a test environment
-		logger := NewLogger("testd", "test")
+		logger := NewLogger("testd", "test", WithErrorProvider(ErrorProvider{SkipFrames: 10, PackageBase: "goutils"}))
 
 		// Next, create a buffer and set the output to it so we can extract messages
 		// from our logger
 		buf := new(bytes.Buffer)
 		logger.errLog.SetOutput(buf)
 
-		// Now, log an error message to the buffer
-		err := logger.Error(fmt.Errorf("Test error"), "Test message. String parameter: %s, "+
+		// Now, log an error message with a custom frame to the buffer
+		err := logger.FrameError(2, fmt.Errorf("Test error"), "Test message. String parameter: %s, "+
 			"Integer parameter: %d", "derp", 42)
 
 		// Finally, extract the data from the buffer and verify the value of the message
@@ -121,6 +121,41 @@ var _ = Describe("Logger Tests", func() {
 		Expect(err.Message).Should(Equal("Test message. String parameter: derp, Integer parameter: 42"))
 		Expect(err.Package).Should(Equal("utils"))
 		Expect(err.Error()).Should(HaveSuffix("[test] utils.glob. (/goutils/utils/logger_test.go 104): " +
+			"Test message. String parameter: derp, Integer parameter: 42, Inner: Test error."))
+	})
+
+	// Tests that logging an error works as expected
+	It("Error - Works", func() {
+
+		// First, create our logger from a test service with a test environment
+		logger := NewLogger("testd", "test")
+
+		// Next, create a buffer and set the output to it so we can extract messages
+		// from our logger
+		buf := new(bytes.Buffer)
+		logger.errLog.SetOutput(buf)
+
+		// Now, log an error message to the buffer
+		err := logger.Error(fmt.Errorf("Test error"), "Test message. String parameter: %s, "+
+			"Integer parameter: %d", "derp", 42)
+
+		// Finally, extract the data from the buffer and verify the value of the message
+		data := string(buf.Bytes())
+		Expect(data).Should(HaveSuffix("[test] utils.glob. (/goutils/utils/logger_test.go 139): " +
+			"Test message. String parameter: derp, Integer parameter: 42, Inner: Test error.\n"))
+
+		// Verify the data in the error
+		Expect(err.Class).Should(Equal("glob"))
+		Expect(err.Environment).Should(Equal("test"))
+		Expect(err.File).Should(Equal("/goutils/utils/logger_test.go"))
+		Expect(err.Function).Should(BeEmpty())
+		Expect(err.GeneratedAt).ShouldNot(BeNil())
+		Expect(err.Inner).Should(HaveOccurred())
+		Expect(err.Inner.Error()).Should(Equal("Test error"))
+		Expect(err.LineNumber).Should(Equal(139))
+		Expect(err.Message).Should(Equal("Test message. String parameter: derp, Integer parameter: 42"))
+		Expect(err.Package).Should(Equal("utils"))
+		Expect(err.Error()).Should(HaveSuffix("[test] utils.glob. (/goutils/utils/logger_test.go 139): " +
 			"Test message. String parameter: derp, Integer parameter: 42, Inner: Test error."))
 	})
 
@@ -152,10 +187,10 @@ var _ = Describe("Logger Tests", func() {
 		Expect(err.GeneratedAt).ShouldNot(BeNil())
 		Expect(err.Inner).Should(HaveOccurred())
 		Expect(err.Inner.Error()).Should(Equal("Test error"))
-		Expect(err.LineNumber).Should(Equal(143))
+		Expect(err.LineNumber).Should(Equal(178))
 		Expect(err.Message).Should(Equal("Test message. String parameter: derp, Integer parameter: 42"))
 		Expect(err.Package).Should(Equal("utils"))
-		Expect(err.Error()).Should(HaveSuffix("[test] utils.glob. (/goutils/utils/logger_test.go 143): " +
+		Expect(err.Error()).Should(HaveSuffix("[test] utils.glob. (/goutils/utils/logger_test.go 178): " +
 			"Test message. String parameter: derp, Integer parameter: 42, Inner: Test error."))
 	})
 })
