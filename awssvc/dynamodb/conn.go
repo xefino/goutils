@@ -154,7 +154,7 @@ func (conn *DatabaseConnection) BatchWrite(ctx context.Context, tableName string
 	}
 
 	// Finally, again attempt to do a batch write to the table with our unprocessed data
-	conn.logger.Log("Batch-write to %s completed. Retries? %t", len(retries) == 0)
+	conn.logger.Log("Batch-write to %s completed. Retries? %t", tableName, len(retries) == 0)
 	return conn.BatchWrite(ctx, tableName, retries...)
 }
 
