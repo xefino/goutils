@@ -56,7 +56,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect
-	github.com/xefino/protobuf-gen-go v1.3.3 // indirect
+	github.com/xefino/protobuf-gen-go v1.3.4 // indirect
 	golang.org/x/net v0.1.0 // indirect
 	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
