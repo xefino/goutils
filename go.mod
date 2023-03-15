@@ -26,7 +26,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.4.0
 	github.com/onsi/gomega v1.23.0
 	github.com/shopspring/decimal v1.3.1
-	github.com/xefino/quantum-api-go v1.2.25
+	github.com/xefino/quantum-api-go v1.2.26
 	golang.org/x/crypto v0.0.0-20220926161630-eccd6366d1be
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
 	gopkg.in/yaml.v3 v3.0.1
