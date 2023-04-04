@@ -10,6 +10,14 @@ func ItemIsNil[T any](item T) {
 	Expect(item).Should(BeNil())
 }
 
+// VerifyList verifies that the number of items and the fields on each item
+func VerifyList[T any](actual []T, verifiers ...func(T)) {
+	Expect(actual).Should(HaveLen(len(verifiers)))
+	for i, item := range actual {
+		verifiers[i](item)
+	}
+}
+
 // NoInnerError verifies that an error did not occur
 func NoInnerError() func(error) {
 	return func(err error) {
