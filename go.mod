@@ -26,7 +26,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.4.0
 	github.com/onsi/gomega v1.23.0
 	github.com/shopspring/decimal v1.3.1
-	github.com/xefino/quantum-api-go v1.2.27
+	github.com/xefino/quantum-api-go v1.2.28
 	golang.org/x/crypto v0.0.0-20220926161630-eccd6366d1be
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
 	gopkg.in/yaml.v3 v3.0.1
@@ -56,7 +56,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect
-	github.com/xefino/protobuf-gen-go v1.3.5 // indirect
+	github.com/xefino/protobuf-gen-go v1.3.7 // indirect
 	golang.org/x/net v0.1.0 // indirect
 	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
