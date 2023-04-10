@@ -19,15 +19,17 @@ We have this setup so that the code included in `vendor` will be downloaded with
 ## Repository Structure
 Currently, the repo is structured as a number of directories based on functionality. Each directory is described below:
 
+- /auth: Contains helper functions useful in authentication
+- /awssvc: Contains standardized request functionality for AWS services, including DynamoDB, KMS, Lambda, S3, SQS. This library also includes an emulation of the AWS policy document that can be serialized to JSON.
 - /collections: Contains functions and data structure types that are commonly used throughout Xefino projects.
 - /concurrency: Convenience functions that make handling concurrent workloads easier
-- /dynamodb: Helper functions for DynamoDB to make working with data in DynamoDB easier
+- /extensions: Extension functionality for various Go types
 - /http: Standardized HTTP client for working with REST APIs
 - /math: Arithmetic and logical helper functions
 - /random: Functions to generate random data
 - /reflection: Functions used to handle run-time reflection, such as getting all the field info from an object.
 - /servicehelpers: Functions used to help set up service scheduling infrastructure
-- /sql: Helper functions for SQL-related code, such as reading results from an SQL query into a list of objects.
+- /sql: Helper functions for SQL-related code, such as reading results from an SQL query into a list of objects. This library also contains some ORM helper functions.
 - /strings: Utility functions for string manipulation
 - /testutils: Utility functions commonly used in testing
 - /time: Helper functions used when working with `time.Time` objects
