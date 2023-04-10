@@ -272,7 +272,7 @@ var _ = Describe("Query Tests", func() {
 
 		// Now, attempt to create and run the query; this should not fail and should return data
 		data, err := NewQuery[testType](logger).Select("key", "value").From("test_table").Where(Or,
-			NewFunctionCallQueryTerm[testType]("RLIKE", "key", "'.*key.*'", "'i'"),
+			NewFunctionCallQueryTerm[testType]("RLIKE(key, '.*key.*', 'i')"),
 			NewMultiQueryTerm[testType](And,
 				NewInjectedQueryTerm[testType]("value", GreaterThanEqualTo, "value1"),
 				NewInjectedQueryTerm[testType]("value", LessThan, "value2"))).Run(context.Background(), db)
