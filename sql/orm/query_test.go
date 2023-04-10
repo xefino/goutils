@@ -251,6 +251,40 @@ var _ = Describe("Query Tests", func() {
 		gomega.Expect(mock.ExpectationsWereMet()).ShouldNot(gomega.HaveOccurred())
 	})
 
+	// Tests that, if no error occurs, and multiple SELECT fields, the table and a function-call WHERE
+	// clause are specified, then all the data from the table that conforms to the filter conditions
+	// will be returned from the query
+	It("FROM, SELECT, WHERE, function call clause - Works", func() {
+
+		// First, create our logger and discard its output
+		logger := utils.NewLogger("query", "test")
+		logger.Discard()
+
+		// Next, create our mock database connection; this should not fail
+		db, mock, err := sqlmock.New()
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+
+		// Inform the mock of the queries we expect to be made and what should be returned
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT key, value FROM test_table WHERE RLIKE(key, '.*key.*', 'i') OR "+
+			"(value >= ? AND value < ?)")).WithArgs("value1", "value2").
+			WillReturnRows(sqlmock.NewRows([]string{"key", "value"}).
+				AddRow("key1", "value1").AddRow("key2", "value2"))
+
+		// Now, attempt to create and run the query; this should not fail and should return data
+		data, err := NewQuery[testType](logger).Select("key", "value").From("test_table").Where(Or,
+			NewFunctionCallQueryTerm[testType]("RLIKE", "key", "'.*key.*'", "'i'"),
+			NewMultiQueryTerm[testType](And,
+				NewInjectedQueryTerm[testType]("value", GreaterThanEqualTo, "value1"),
+				NewInjectedQueryTerm[testType]("value", LessThan, "value2"))).Run(context.Background(), db)
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+
+		// Finally, verify the data and the mock expectations
+		gomega.Expect(data).Should(gomega.HaveLen(2))
+		verifyTestType(data[0], "key1", "value1")
+		verifyTestType(data[1], "key2", "value2")
+		gomega.Expect(mock.ExpectationsWereMet()).ShouldNot(gomega.HaveOccurred())
+	})
+
 	// Tests that, if no error occurs, and multiple SELECT fields, the table, multiple WHERE clauses and
 	// an ORDER BY condition are specified, then all the data from the table that conforms to the filter
 	// conditions will be returned from the query

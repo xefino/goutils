@@ -1,5 +1,7 @@
 package orm
 
+import "strings"
+
 // Constant comparison operations
 const (
 	Equals             = "="
@@ -113,4 +115,27 @@ func (term *MultiQueryTerm[T]) ModifyQuery(query *Query[T]) {
 	}
 
 	return
+}
+
+// FunctionCallQueryTerm creates a new function call query term that allows the user to inject an SQL function
+// call into the WHERE clause of an SQL query
+type FunctionCallQueryTerm[T any] struct {
+	FunctionName string
+	Arguments    []string
+}
+
+// NewFunctionCallQueryTerm creates a new function call query term from a function name and arguments
+func NewFunctionCallQueryTerm[T any](name string, args ...string) *FunctionCallQueryTerm[T] {
+	return &FunctionCallQueryTerm[T]{
+		FunctionName: name,
+		Arguments:    args,
+	}
+}
+
+// ModifyQuery modifies the query to include this query term
+func (term *FunctionCallQueryTerm[T]) ModifyQuery(query *Query[T]) {
+	query.filter.WriteString(term.FunctionName)
+	query.filter.WriteByte('(')
+	query.filter.WriteString(strings.Join(term.Arguments, ", "))
+	query.filter.WriteByte(')')
 }
