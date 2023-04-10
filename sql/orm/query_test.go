@@ -185,6 +185,39 @@ var _ = Describe("Query Tests", func() {
 		gomega.Expect(mock.ExpectationsWereMet()).ShouldNot(gomega.HaveOccurred())
 	})
 
+	// Tests that, if an no error occurs, and multiple SELECT fields, a FROM clause extracted from an
+	// inner query, and a single WHERE clause are specified, then all the data resulting from the inner
+	// query that conforms to the filter will be returned from the query.
+	It("FROM is inner query - Works", func() {
+
+		// First, create our logger and discard its output
+		logger := utils.NewLogger("query", "test")
+		logger.Discard()
+
+		// Next, create our mock database connection; this should not fail
+		db, mock, err := sqlmock.New()
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+
+		// Inform the mock of the queries we expect to be made and what should be returned
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT key, value FROM (SELECT *, ROW_NUMBER() OVER (" +
+			"PARTITION BY key ORDER BY value DESC) AS rn FROM test_table) WHERE rn = 1")).
+			WillReturnRows(sqlmock.NewRows([]string{"key", "value"}).
+				AddRow("key1", "value1").AddRow("key2", "value2"))
+
+		// Now, attempt to create and run the query; this should not fail and should return data
+		data, err := NewQuery[testType](logger).Select("key", "value").FromQuery(
+			NewQuery[testType](logger).Select(All, "ROW_NUMBER() OVER (PARTITION BY key ORDER BY value DESC) AS rn").
+				From("test_table").Where(And, NewConstantQueryTerm[testType]("rn", Equals, "1"))).Where(And,
+			NewConstantQueryTerm[testType]("value", Equals, "'value1'")).Run(context.Background(), db)
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+
+		// Finally, verify the data and the mock expectations
+		gomega.Expect(data).Should(gomega.HaveLen(2))
+		verifyTestType(data[0], "key1", "value1")
+		verifyTestType(data[1], "key2", "value1")
+		gomega.Expect(mock.ExpectationsWereMet()).ShouldNot(gomega.HaveOccurred())
+	})
+
 	// Tests that, if no error occurs, and multiple SELECT fields, the table and multiple WHERE clauses
 	// are specified, then all the data from the table that conforms to the filter conditions will be
 	// returned from the query

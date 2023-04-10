@@ -10,6 +10,11 @@ import (
 	"github.com/xefino/goutils/utils"
 )
 
+// SQL constants
+const (
+	All = "*"
+)
+
 // Constant Boolean connection operations
 const (
 	And = "AND"
@@ -80,6 +85,14 @@ func (query *Query[T]) Select(fields ...string) *Query[T] {
 // can be chained with others
 func (query *Query[T]) From(table string) *Query[T] {
 	query.table = table
+	return query
+}
+
+// FromQuery sets the table that the data should be pulled from so that it is the results of an inner query.
+// This function returns the modified query so that it can be chained with others
+func (query *Query[T]) FromQuery(inner *Query[T]) *Query[T] {
+	query.table = "(" + inner.String() + ")"
+	query.arguments = append(query.arguments, inner.arguments...)
 	return query
 }
 
