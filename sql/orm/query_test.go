@@ -384,6 +384,76 @@ var _ = Describe("Query Tests", func() {
 		verifyTestType(data[1], "key2", "value2")
 		gomega.Expect(mock.ExpectationsWereMet()).ShouldNot(gomega.HaveOccurred())
 	})
+
+	// Tests that, if no error occurs, and multiple SELECT fields, the table, multiple WHERE clauses,
+	// an ORDER BY condition, a GROUP BY condition and a LIMIT are specified, then all the data from
+	// the table that conforms to the filter conditions will be returned from the query
+	It("SELECT, FROM, WHERE, ORDER BY, GROUP BY, LIMIT - Works", func() {
+
+		// First, create our logger and discard its output
+		logger := utils.NewLogger("query", "test")
+		logger.Discard()
+
+		// Next, create our mock database connection; this should not fail
+		db, mock, err := sqlmock.New()
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+
+		// Inform the mock of the queries we expect to be made and what should be returned
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT key, value FROM test_table WHERE key LIKE key% OR "+
+			"(value >= ? AND value < ?) ORDER BY key LIMIT 1000")).WithArgs("value1", "value2").
+			WillReturnRows(sqlmock.NewRows([]string{"key", "value"}).
+				AddRow("key1", "value1").AddRow("key2", "value2"))
+
+		// Now, attempt to create and run the query; this should not fail and should return data
+		data, err := NewQuery[testType](logger).Select("key", "value").From("test_table").Where(Or,
+			NewConstantQueryTerm[testType]("key", Like, "key%"), NewMultiQueryTerm[testType](And,
+				NewInjectedQueryTerm[testType]("value", GreaterThanEqualTo, "value1"),
+				NewInjectedQueryTerm[testType]("value", LessThan, "value2"))).OrderBy("key").
+			GroupBy("key", "value").Limit(1000).
+			Run(context.Background(), db)
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+
+		// Finally, verify the data and the mock expectations
+		gomega.Expect(data).Should(gomega.HaveLen(2))
+		verifyTestType(data[0], "key1", "value1")
+		verifyTestType(data[1], "key2", "value2")
+		gomega.Expect(mock.ExpectationsWereMet()).ShouldNot(gomega.HaveOccurred())
+	})
+
+	// Tests that, if no error occurs, and multiple SELECT fields, the table, multiple WHERE clauses,
+	// an ORDER BY condition, a GROUP BY condition, a LIMIT and an OFFSET are specified, then all the
+	// data from the table that conforms to the filter conditions will be returned from the query
+	It("SELECT, FROM, WHERE, ORDER BY, GROUP BY, LIMIT, OFFSET - Works", func() {
+
+		// First, create our logger and discard its output
+		logger := utils.NewLogger("query", "test")
+		logger.Discard()
+
+		// Next, create our mock database connection; this should not fail
+		db, mock, err := sqlmock.New()
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+
+		// Inform the mock of the queries we expect to be made and what should be returned
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT key, value FROM test_table WHERE key LIKE key% OR "+
+			"(value >= ? AND value < ?) ORDER BY key LIMIT 1000 OFFSET 0")).WithArgs("value1", "value2").
+			WillReturnRows(sqlmock.NewRows([]string{"key", "value"}).
+				AddRow("key1", "value1").AddRow("key2", "value2"))
+
+		// Now, attempt to create and run the query; this should not fail and should return data
+		data, err := NewQuery[testType](logger).Select("key", "value").From("test_table").Where(Or,
+			NewConstantQueryTerm[testType]("key", Like, "key%"), NewMultiQueryTerm[testType](And,
+				NewInjectedQueryTerm[testType]("value", GreaterThanEqualTo, "value1"),
+				NewInjectedQueryTerm[testType]("value", LessThan, "value2"))).OrderBy("key").
+			GroupBy("key", "value").Limit(1000).Offset(0).
+			Run(context.Background(), db)
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+
+		// Finally, verify the data and the mock expectations
+		gomega.Expect(data).Should(gomega.HaveLen(2))
+		verifyTestType(data[0], "key1", "value1")
+		verifyTestType(data[1], "key2", "value2")
+		gomega.Expect(mock.ExpectationsWereMet()).ShouldNot(gomega.HaveOccurred())
+	})
 })
 
 // Helper type that we'll use for returning data from SQL queries

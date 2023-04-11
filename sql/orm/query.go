@@ -3,6 +3,7 @@ package orm
 import (
 	"context"
 	"database/sql"
+	"strconv"
 	"strings"
 
 	xsql "github.com/xefino/goutils/sql"
@@ -28,6 +29,8 @@ type Query[T any] struct {
 	filter    *strings.Builder
 	groupBy   string
 	orderBy   string
+	limit     *uint
+	offset    *uint
 	arguments []any
 	logger    *utils.Logger
 }
@@ -70,8 +73,20 @@ func (query *Query[T]) String() string {
 		groupBy = " GROUP BY " + query.groupBy
 	}
 
+	// If we have a limit set then inject it into a clause as well
+	var limit string
+	if query.limit != nil {
+		limit = " LIMIT " + strconv.FormatUint(uint64(*query.limit), 10)
+	}
+
+	// If we have an offset then inject it into a clause
+	var offset string
+	if query.offset != nil {
+		offset = " OFFSET " + strconv.FormatUint(uint64(*query.offset), 10)
+	}
+
 	// Finally, add all the various query pieces together and return them
-	return "SELECT " + fields + " FROM " + query.table + where + orderBy + groupBy
+	return "SELECT " + fields + " FROM " + query.table + where + orderBy + groupBy + limit + offset
 }
 
 // Select determines which fields should be selected in the query, returning the modified query so that
@@ -130,6 +145,18 @@ func (query *Query[T]) GroupBy(fields ...string) *Query[T] {
 // function can be chained with others
 func (query *Query[T]) OrderBy(fields ...string) *Query[T] {
 	query.orderBy = strings.Join(fields, ", ")
+	return query
+}
+
+// Limit sets the limit on the number of rows that may be returned by the query
+func (query *Query[T]) Limit(limit uint) *Query[T] {
+	query.limit = &limit
+	return query
+}
+
+// Offset sets the offset on the number of rows that should be skipped before being returned by the query
+func (query *Query[T]) Offset(offset uint) *Query[T] {
+	query.offset = &offset
 	return query
 }
 
