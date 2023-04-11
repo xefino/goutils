@@ -60,13 +60,13 @@ var _ = Describe("Query Tests", func() {
 			gomega.Expect(mock.ExpectationsWereMet()).ShouldNot(gomega.HaveOccurred())
 		},
 		Entry("QueryContext fails - Error", true, false, testutils.ErrorVerifier("test", "orm",
-			"/goutils/sql/orm/query.go", "Query", "Run", 143, testutils.InnerErrorVerifier("QueryContext failed"),
+			"/goutils/sql/orm/query.go", "Query", "Run", 170, testutils.InnerErrorVerifier("QueryContext failed"),
 			"Failed to query orm.testType data from the \"test_table\" table", "[test] orm.Query.Run "+
-				"(/goutils/sql/orm/query.go 143): Failed to query orm.testType data from the \"test_table\" "+
+				"(/goutils/sql/orm/query.go 170): Failed to query orm.testType data from the \"test_table\" "+
 				"table, Inner: QueryContext failed.")),
 		Entry("ReadRows fails - Error", false, true, testutils.ErrorVerifier("test", "orm",
-			"/goutils/sql/orm/query.go", "Query", "Run", 150, testutils.InnerErrorVerifier("Row could not be read, error: Scan failed"),
-			"Failed to read orm.testType data", "[test] orm.Query.Run (/goutils/sql/orm/query.go 150): "+
+			"/goutils/sql/orm/query.go", "Query", "Run", 177, testutils.InnerErrorVerifier("Row could not be read, error: Scan failed"),
+			"Failed to read orm.testType data", "[test] orm.Query.Run (/goutils/sql/orm/query.go 177): "+
 				"Failed to read orm.testType data, Inner: Row could not be read, error: Scan failed.")))
 
 	// Tests that, if no error occurs, and only the table is specified, then all the data from that
@@ -366,7 +366,7 @@ var _ = Describe("Query Tests", func() {
 
 		// Inform the mock of the queries we expect to be made and what should be returned
 		mock.ExpectQuery(regexp.QuoteMeta("SELECT key, value FROM test_table WHERE key LIKE key% OR "+
-			"(value >= ? AND value < ?) ORDER BY key")).WithArgs("value1", "value2").
+			"(value >= ? AND value < ?) ORDER BY key GROUP BY key, value")).WithArgs("value1", "value2").
 			WillReturnRows(sqlmock.NewRows([]string{"key", "value"}).
 				AddRow("key1", "value1").AddRow("key2", "value2"))
 
@@ -400,9 +400,9 @@ var _ = Describe("Query Tests", func() {
 
 		// Inform the mock of the queries we expect to be made and what should be returned
 		mock.ExpectQuery(regexp.QuoteMeta("SELECT key, value FROM test_table WHERE key LIKE key% OR "+
-			"(value >= ? AND value < ?) ORDER BY key LIMIT 1000")).WithArgs("value1", "value2").
-			WillReturnRows(sqlmock.NewRows([]string{"key", "value"}).
-				AddRow("key1", "value1").AddRow("key2", "value2"))
+			"(value >= ? AND value < ?) ORDER BY key GROUP BY key, value LIMIT 1000")).
+			WithArgs("value1", "value2").WillReturnRows(sqlmock.NewRows([]string{"key", "value"}).
+			AddRow("key1", "value1").AddRow("key2", "value2"))
 
 		// Now, attempt to create and run the query; this should not fail and should return data
 		data, err := NewQuery[testType](logger).Select("key", "value").From("test_table").Where(Or,
@@ -435,9 +435,9 @@ var _ = Describe("Query Tests", func() {
 
 		// Inform the mock of the queries we expect to be made and what should be returned
 		mock.ExpectQuery(regexp.QuoteMeta("SELECT key, value FROM test_table WHERE key LIKE key% OR "+
-			"(value >= ? AND value < ?) ORDER BY key LIMIT 1000 OFFSET 0")).WithArgs("value1", "value2").
-			WillReturnRows(sqlmock.NewRows([]string{"key", "value"}).
-				AddRow("key1", "value1").AddRow("key2", "value2"))
+			"(value >= ? AND value < ?) ORDER BY key GROUP BY key, value LIMIT 1000 OFFSET 0")).
+			WithArgs("value1", "value2").WillReturnRows(sqlmock.NewRows([]string{"key", "value"}).
+			AddRow("key1", "value1").AddRow("key2", "value2"))
 
 		// Now, attempt to create and run the query; this should not fail and should return data
 		data, err := NewQuery[testType](logger).Select("key", "value").From("test_table").Where(Or,
