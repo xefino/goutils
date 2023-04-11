@@ -60,13 +60,13 @@ var _ = Describe("Query Tests", func() {
 			gomega.Expect(mock.ExpectationsWereMet()).ShouldNot(gomega.HaveOccurred())
 		},
 		Entry("QueryContext fails - Error", true, false, testutils.ErrorVerifier("test", "orm",
-			"/goutils/sql/orm/query.go", "Query", "Run", 130, testutils.InnerErrorVerifier("QueryContext failed"),
+			"/goutils/sql/orm/query.go", "Query", "Run", 143, testutils.InnerErrorVerifier("QueryContext failed"),
 			"Failed to query orm.testType data from the \"test_table\" table", "[test] orm.Query.Run "+
-				"(/goutils/sql/orm/query.go 130): Failed to query orm.testType data from the \"test_table\" "+
+				"(/goutils/sql/orm/query.go 143): Failed to query orm.testType data from the \"test_table\" "+
 				"table, Inner: QueryContext failed.")),
 		Entry("ReadRows fails - Error", false, true, testutils.ErrorVerifier("test", "orm",
-			"/goutils/sql/orm/query.go", "Query", "Run", 137, testutils.InnerErrorVerifier("Row could not be read, error: Scan failed"),
-			"Failed to read orm.testType data", "[test] orm.Query.Run (/goutils/sql/orm/query.go 137): "+
+			"/goutils/sql/orm/query.go", "Query", "Run", 150, testutils.InnerErrorVerifier("Row could not be read, error: Scan failed"),
+			"Failed to read orm.testType data", "[test] orm.Query.Run (/goutils/sql/orm/query.go 150): "+
 				"Failed to read orm.testType data, Inner: Row could not be read, error: Scan failed.")))
 
 	// Tests that, if no error occurs, and only the table is specified, then all the data from that
@@ -200,14 +200,13 @@ var _ = Describe("Query Tests", func() {
 
 		// Inform the mock of the queries we expect to be made and what should be returned
 		mock.ExpectQuery(regexp.QuoteMeta("SELECT key, value FROM (SELECT *, ROW_NUMBER() OVER (" +
-			"PARTITION BY key ORDER BY value DESC) AS rn FROM test_table) WHERE rn = 1")).
-			WillReturnRows(sqlmock.NewRows([]string{"key", "value"}).
-				AddRow("key1", "value1").AddRow("key2", "value2"))
+			"PARTITION BY key ORDER BY value DESC) AS rn FROM test_table) WHERE rn = 1 AND value = 'value1'")).
+			WillReturnRows(sqlmock.NewRows([]string{"key", "value"}).AddRow("key1", "value1").AddRow("key2", "value1"))
 
 		// Now, attempt to create and run the query; this should not fail and should return data
 		data, err := NewQuery[testType](logger).Select("key", "value").FromQuery(
 			NewQuery[testType](logger).Select(All, "ROW_NUMBER() OVER (PARTITION BY key ORDER BY value DESC) AS rn").
-				From("test_table").Where(And, NewConstantQueryTerm[testType]("rn", Equals, "1"))).Where(And,
+				From("test_table")).Where(And, NewConstantQueryTerm[testType]("rn", Equals, "1"),
 			NewConstantQueryTerm[testType]("value", Equals, "'value1'")).Run(context.Background(), db)
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 
