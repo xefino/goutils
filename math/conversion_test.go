@@ -39,4 +39,39 @@ var _ = Describe("Math Conversion Tests", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(result).Should(Equal(int64(3581200)))
 	})
+
+	// Tests that the FormatInt function works with no arguments
+	It("FormatInt - No arguments - Works", func() {
+		Expect(FormatInt(44)).Should(Equal("44"))
+	})
+
+	// Tests that the FormatInt function works with one argument
+	It("FormatInt - Base Provided - Works", func() {
+		Expect(FormatInt(-44, 8)).Should(Equal("-54"))
+	})
+
+	// Tests that the FormatUint function works with no arguments
+	It("FormatUint - No arguments - Works", func() {
+		Expect(FormatUint(uint(44))).Should(Equal("44"))
+	})
+
+	// Tests that the FormatUint function works with one argument
+	It("FormatUint - Base Provided - Works", func() {
+		Expect(FormatUint(uint(44), 8)).Should(Equal("54"))
+	})
+
+	// Tests that the FormatFloat function works when no optional arguments are provided
+	It("FormatFloat - No arguments - Works", func() {
+		Expect(FormatFloat(5.99)).Should(Equal("5.99"))
+	})
+
+	// Tests that the FormatFloat function works when an optional format argument is provided
+	It("FormatFloat - Format provided - Works", func() {
+		Expect(FormatFloat(float32(69.88), 'e')).Should(Equal("6.988e+01"))
+	})
+
+	// Tests that the FormatFloat function works when optional format and precision arguments are provided
+	It("FormatFloat - Precision provided - Works", func() {
+		Expect(FormatFloat(70.99, byte('E'), 2)).Should(Equal("7.10E+01"))
+	})
 })

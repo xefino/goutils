@@ -83,11 +83,13 @@ func FormatFloat[T constraints.Float](value T, args ...any) string {
 
 	// First, we'll attempt to parse the format parameter. If we have at least one argument, then
 	// we'll check that the argument is a byte. Otherwise' we'll assume a format of 'f'
-	fmt := byte('f')
+	format := byte('f')
 	if len(args) >= 1 {
 		cFmt, ok := args[0].(byte)
 		if ok {
-			fmt = cFmt
+			format = cFmt
+		} else if bFmt, ok := args[0].(rune); ok {
+			format = byte(bFmt)
 		}
 	}
 
@@ -95,7 +97,7 @@ func FormatFloat[T constraints.Float](value T, args ...any) string {
 	// check that the argument is an integer. Otherwise, we'll assume a precision of -1
 	prec := -1
 	if len(args) >= 2 {
-		cPrec, ok := args[0].(int)
+		cPrec, ok := args[1].(int)
 		if ok && cPrec >= -1 {
 			prec = cPrec
 		}
@@ -110,5 +112,5 @@ func FormatFloat[T constraints.Float](value T, args ...any) string {
 	}
 
 	// Finally, format the floating-point value to a string using the format, precision and size and return it
-	return strconv.FormatFloat(float64(value), fmt, prec, size)
+	return strconv.FormatFloat(float64(value), format, prec, size)
 }
