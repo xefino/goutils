@@ -1,137 +1,159 @@
 package orm
 
-// Constant comparison operations
-const (
-	Equals             = "="
-	NotEqual           = "<>"
-	GreaterThan        = ">"
-	GreaterThanEqualTo = ">="
-	LessThan           = "<"
-	LessThanEqualTo    = "<="
-	Like               = "LIKE"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/xefino/goutils/collections"
+	xstr "github.com/xefino/goutils/strings"
 )
 
-// WhereClause describes the functionality that should exist in any where clause term
-type WhereClause[T any] interface {
-	ModifyQuery(*Query[T])
+// WhereClause describes the functionality that should exist in any where clause terms
+type WhereClause interface {
+	ModifyQuery(*Query) string
 }
 
-// ConstantQueryTerm contains the functionality allowing the user to compare a database field to a concrete value
-type ConstantQueryTerm[T any] struct {
+// QueryTerm is the base where clause that allows a single field-parameter comparison
+type QueryTerm struct {
 	Name     string
 	Operator string
-	Value    string
+	Value    Parameter
 }
 
-// NewConstantQueryTerm creates a new constant query term from the field name, the comparison operation
-// and a value to which the field should be compared
-func NewConstantQueryTerm[T any](name string, op string, value string) *ConstantQueryTerm[T] {
-	return &ConstantQueryTerm[T]{
+// NewQueryTerm creates a new QueryTerm from a name, operation and parameter
+func NewQueryTerm(name string, op string, param Parameter) *QueryTerm {
+	return &QueryTerm{
 		Name:     name,
 		Operator: op,
-		Value:    value,
+		Value:    param,
 	}
 }
 
 // ModifyQuery modifies the query to include this query term
-func (term *ConstantQueryTerm[T]) ModifyQuery(query *Query[T]) {
-	query.filter.WriteString(term.Name)
-	query.filter.WriteByte(' ')
-	query.filter.WriteString(term.Operator)
-	query.filter.WriteByte(' ')
-	query.filter.WriteString(term.Value)
+func (term *QueryTerm) ModifyQuery(query *Query) string {
+	return fmt.Sprintf("%s %s %s", term.Name, term.Operator, term.Value.ModifyQuery(query))
 }
 
-// InjectedQueryTerm creates a new query term that injects an argument into the query's arguments list
-// and a placeholder ? into the query string itself. This is intended for variables that need to be
-// added to SQL queries, thereby avoiding the possibility of SQL injection
-type InjectedQueryTerm[T any] struct {
-	Name     string
+// UnaryQueryTerm creates a new query term that allows a single query term to be combined with a unary operator
+type UnaryQueryTerm struct {
 	Operator string
-	Value    any
+	Clause   WhereClause
 }
 
-// NewInjectedQueryTerm creates a new injected query term from a field name, a comparison operation,
-// and a value to which the field should be compared, to be injected later
-func NewInjectedQueryTerm[T any](name string, op string, value any) *InjectedQueryTerm[T] {
-	return &InjectedQueryTerm[T]{
-		Name:     name,
+// NewUnaryQueryTerm creates a new unary query term from an operator and an inner where clause
+func NewUnaryQueryTerm(op string, clause WhereClause) *UnaryQueryTerm {
+	return &UnaryQueryTerm{
 		Operator: op,
-		Value:    value,
+		Clause:   clause,
 	}
 }
 
 // ModifyQuery modifies the query to include this query term
-func (term *InjectedQueryTerm[T]) ModifyQuery(query *Query[T]) {
-	query.filter.WriteString(term.Name)
-	query.filter.WriteByte(' ')
-	query.filter.WriteString(term.Operator)
-	query.filter.WriteString(" ?")
-	query.arguments = append(query.arguments, term.Value)
+func (term *UnaryQueryTerm) ModifyQuery(query *Query) string {
+
+	// Get the result of the clause; if this is empty then we have no work to do here
+	result := term.Clause.ModifyQuery(query)
+	if xstr.IsEmpty(result) {
+		return ""
+	}
+
+	// Return the result enclosed in parentheses, preceeded by the NOT keyword
+	return "NOT (" + result + ")"
 }
 
 // MultiQueryTerm creates a new query term that allows multiple query terms to be joined together inside
 // a set of parentheses. This is intended to allow for alternating sets of AND/OR logic (i.e. A AND (B OR C))
-type MultiQueryTerm[T any] struct {
+type MultiQueryTerm struct {
 	Operator string
-	Inner    []WhereClause[T]
+	Inner    []WhereClause
 }
 
 // NewMultiQueryTerm creates a new multi-query term from a connecting operator and a list of inner terms
-func NewMultiQueryTerm[T any](op string, terms ...WhereClause[T]) *MultiQueryTerm[T] {
-	return &MultiQueryTerm[T]{
+func NewMultiQueryTerm(op string, terms ...WhereClause) *MultiQueryTerm {
+	return &MultiQueryTerm{
 		Operator: op,
 		Inner:    terms,
 	}
 }
 
 // ModifyQuery modifies the query to include this query term
-func (term *MultiQueryTerm[T]) ModifyQuery(query *Query[T]) {
+func (term *MultiQueryTerm) ModifyQuery(query *Query) string {
 
-	// First, if we have no inner terms then we have no work to do so return here
+	// If we have no inner terms then we have no work to do so return here
 	if len(term.Inner) == 0 {
-		return
+		return ""
 	}
 
-	// Next, add the opening parenthesis and first where clause. Also, ensure that the
-	// closing parenthesis is added when the function exits
-	query.filter.WriteRune('(')
-	term.Inner[0].ModifyQuery(query)
-	defer query.filter.WriteRune(')')
-
-	// Now, if we only have one where clause then return here
-	if len(term.Inner) == 1 {
-		return
-	}
-
-	// Finally, iterate over all the remaining where clauses and add each to the query
-	for _, clause := range term.Inner[1:] {
-		query.filter.WriteByte(' ')
-		query.filter.WriteString(term.Operator)
-		query.filter.WriteByte(' ')
-		clause.ModifyQuery(query)
-	}
-
-	return
+	// Iterate over all the clauses, modify the query with each and then combine them into a comma-delimited
+	// list, and then return the result
+	connector := " " + term.Operator + " "
+	return fmt.Sprintf("(%s)", strings.Join(collections.Convert(
+		func(clause WhereClause) string { return clause.ModifyQuery(query) }, term.Inner...), connector))
 }
 
 // FunctionCallQueryTerm creates a new function call query term that allows the user to inject an SQL function
 // call into the WHERE clause of an SQL query
-type FunctionCallQueryTerm[T any] struct {
+type FunctionCallQueryTerm struct {
 	Call      string
 	Arguments []any
 }
 
 // NewFunctionCallQueryTerm creates a new function call query term from a function name and arguments
-func NewFunctionCallQueryTerm[T any](call string, args ...any) *FunctionCallQueryTerm[T] {
-	return &FunctionCallQueryTerm[T]{
+func NewFunctionCallQueryTerm(call string, args ...any) *FunctionCallQueryTerm {
+	return &FunctionCallQueryTerm{
 		Call:      call,
 		Arguments: args,
 	}
 }
 
 // ModifyQuery modifies the query to include this query term
-func (term *FunctionCallQueryTerm[T]) ModifyQuery(query *Query[T]) {
-	query.filter.WriteString(term.Call)
+func (term *FunctionCallQueryTerm) ModifyQuery(query *Query) string {
 	query.arguments = append(query.arguments, term.Arguments...)
+	return term.Call
+}
+
+// Not creates a new where clause negating the clause sent to it as a parameter
+func Not(clause WhereClause) WhereClause {
+	return NewUnaryQueryTerm("NOT", clause)
+}
+
+// Equals creates a new where clause stating that a field is equal to a parameter
+func Equals(field string, value any, constant bool) WhereClause {
+	return NewQueryTerm(field, "=", param(value, constant))
+}
+
+// NotEquals creates a new where clause stating that a field is not equal to a parameter
+func NotEquals(field string, value any, constant bool) WhereClause {
+	return NewQueryTerm(field, "<>", param(value, constant))
+}
+
+// GreaterThan creates a new where clause stating that a field is greater than a parameter
+func GreaterThan(field string, value any, constant bool) WhereClause {
+	return NewQueryTerm(field, ">", param(value, constant))
+}
+
+// GreaterThanOrEqualTo creates a new where clause stating that a field is greater than or equal to a parameter
+func GreaterThanOrEqualTo(field string, value any, constant bool) WhereClause {
+	return NewQueryTerm(field, ">=", param(value, constant))
+}
+
+// LessThan creates a new where clause stating that a field is less than a parameter
+func LessThan(field string, value any, constant bool) WhereClause {
+	return NewQueryTerm(field, "<", param(value, constant))
+}
+
+// LessThanOrEqualTo creates a new where clause stating that a field is less than or equal to a parameter
+func LessThanOrEqualTo(field string, value any, constant bool) WhereClause {
+	return NewQueryTerm(field, "<=", param(value, constant))
+}
+
+// Like creates a new where clause stating that a field should be compared to a value using the LIKE keyword
+func Like(field string, value any, constant bool) WhereClause {
+	return NewQueryTerm(field, "LIKE", param(value, constant))
+}
+
+// Between creates a new where clause stating that a field is between two values
+func Between[T any](field string, lower T, lowerConst bool, upper T, upperConst bool) WhereClause {
+	return NewMultiQueryTerm(And, NewQueryTerm(field, ">=", param(lower, lowerConst)),
+		NewQueryTerm(field, "<", param(upper, upperConst)))
 }
