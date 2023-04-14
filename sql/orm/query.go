@@ -1,14 +1,10 @@
 package orm
 
 import (
-	"context"
-	"database/sql"
 	"strings"
 
 	"github.com/xefino/goutils/collections"
-	xsql "github.com/xefino/goutils/sql"
 	xstr "github.com/xefino/goutils/strings"
-	"github.com/xefino/goutils/utils"
 )
 
 // SQL constants
@@ -40,6 +36,11 @@ func NewQuery() *Query {
 		fields:    make([]string, 0),
 		arguments: make([]any, 0),
 	}
+}
+
+// Source returns the source of the Query, i.e. its table name
+func (query *Query) Source() string {
+	return query.table
 }
 
 // String converts a Query to its string equivalent
@@ -84,6 +85,11 @@ func (query *Query) String() string {
 
 	// Finally, add all the various query pieces together and return them
 	return "SELECT " + fields + " FROM " + query.table + where + orderBy + groupBy + limit + offset
+}
+
+// Arguments returns the arguments that should be injected into the Query
+func (query *Query) Arguments() []any {
+	return query.arguments
 }
 
 // Select determines which fields should be selected in the query, returning the modified query so that
@@ -150,25 +156,4 @@ func (query *Query) Limit(limit any, constant bool) *Query {
 func (query *Query) Offset(offset any, constant bool) *Query {
 	query.offset = param(offset, constant).ModifyQuery(query)
 	return query
-}
-
-// Run runs the query against a provided database connection, returning the query results
-func RunQuery[T any](ctx context.Context, query *Query, db *sql.DB, logger *utils.Logger) ([]*T, error) {
-
-	// Attempt to run the query against a database connection; if this fails then log and return an error
-	rows, err := db.QueryContext(ctx, query.String(), query.arguments...)
-	if err != nil {
-		typ := new(T)
-		return nil, logger.Error(err, "Failed to query %T data from the %q table", *typ, query.table)
-	}
-
-	// Read the rows into a list of assets if we couldn't read the rows data then return an error
-	data, err := xsql.ReadRows[T](rows)
-	if err != nil {
-		typ := new(T)
-		return nil, logger.Error(err, "Failed to read %T data", *typ)
-	}
-
-	// Return the data we read
-	return data, nil
 }
