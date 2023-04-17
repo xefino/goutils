@@ -23,6 +23,7 @@ type Query struct {
 	fields    []string
 	table     string
 	filter    string
+	having    string
 	groupBy   string
 	orderBy   string
 	limit     string
@@ -59,6 +60,12 @@ func (query *Query) String() string {
 		where = " WHERE " + query.filter
 	}
 
+	// If we have any having clause then convert that to a string now
+	var having string
+	if !xstr.IsEmpty(query.having) {
+		having = " HAVING " + query.having
+	}
+
 	// Now, if we have any order-by fields then inject them into a clause
 	var orderBy string
 	if !xstr.IsEmpty(query.orderBy) {
@@ -84,7 +91,7 @@ func (query *Query) String() string {
 	}
 
 	// Finally, add all the various query pieces together and return them
-	return "SELECT " + fields + " FROM " + query.table + where + orderBy + groupBy + limit + offset
+	return "SELECT " + fields + " FROM " + query.table + where + groupBy + having + orderBy + limit + offset
 }
 
 // Arguments returns the arguments that should be injected into the Query
@@ -116,7 +123,7 @@ func (query *Query) FromQuery(inner *Query) *Query {
 
 // Where sets the filter clauses that should be used to determine which rows are returned from the query.
 // The op variable should be either AND or OR and is used to chain the clauses together. This function
-// returns the modified query so that it can be cahined with other functions.
+// returns the modified query so that it can be chained with other functions.
 func (query *Query) Where(op string, clauses ...WhereClause) *Query {
 
 	// If we have no clauses then return the query here
@@ -136,6 +143,24 @@ func (query *Query) Where(op string, clauses ...WhereClause) *Query {
 // function can be chained with others
 func (query *Query) GroupBy(fields ...string) *Query {
 	query.groupBy = strings.Join(fields, ", ")
+	return query
+}
+
+// Having sets the having filter clauses that should be used to determine which rows are returned from
+// the query. The op variable should be either AND or OR and is used to chain the clauses together. This
+// function returns the modified query so that it can be chained with other functions.
+func (query *Query) Having(op string, clauses ...WhereClause) *Query {
+
+	// If we have no clauses then return the query here
+	if len(clauses) == 0 {
+		return query
+	}
+
+	// Otherwise, we have at leat one clause so create our connector, and join all our clauses toegether with it,
+	// writing the resulting string to the query filter
+	connector := " " + op + " "
+	query.having = strings.Join(collections.Convert(
+		func(clause WhereClause) string { return clause.ModifyQuery(query) }, clauses...), connector)
 	return query
 }
 
