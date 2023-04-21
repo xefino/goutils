@@ -142,6 +142,50 @@ var _ = Describe("Indexed Map Tests", func() {
 		Expect(dict.At(-3)).Should(Equal(1))
 	})
 
+	// Tests that, if the Index function is called with a key that is
+	// not associated with any item in the list, then a zero value will be
+	// returned for the index and false will be returned for the found flag
+	It("Index - Not found - False returned", func() {
+
+		// First, create a new indexed map
+		dict := NewIndexedMap[string, int]()
+
+		// Next, add some entries to the map
+		dict.Add("derp", 1, false)
+		dict.Add("herp", 2, false)
+		dict.Add("sherbert", 3, false)
+
+		// Now, attempt to retrieve an index for a key from the map that
+		// is not associated with any key in the map
+		index, found := dict.Index("rainbow")
+
+		// Verify that the item wasn't found
+		Expect(index).Should(BeZero())
+		Expect(found).Should(BeFalse())
+	})
+
+	// Tests that, if the Index function is called with a key that is
+	// associated with an item in the list, then the index of that item
+	// will be returned and true will be returned for the found flag
+	It("Index - Found - True returned", func() {
+
+		// First, create a new indexed map
+		dict := NewIndexedMap[string, int]()
+
+		// Next, add some entries to the map
+		dict.Add("derp", 1, false)
+		dict.Add("herp", 2, false)
+		dict.Add("sherbert", 3, false)
+
+		// Now, attempt to retrieve an index for a key from the map that
+		// is associated with a key in the map
+		index, found := dict.Index("herp")
+
+		// Verify that the item was found
+		Expect(index).Should(Equal(1))
+		Expect(found).Should(BeTrue())
+	})
+
 	// Tests that, if the Get function is called with a key that is
 	// not associated with any item in the list, then the zero value
 	// for that type and false will be returned

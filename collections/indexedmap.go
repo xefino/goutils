@@ -65,6 +65,15 @@ func (m *IndexedMap[U, T]) At(index int) T {
 	}
 }
 
+// Index retrieves the index of the item associated with the key. If the key does not exist then false
+// will be returned. This operation is guaranteed O(1).
+func (m *IndexedMap[U, T]) Index(key U) (uint, bool) {
+	m.ctrl.RLock()
+	defer m.ctrl.RUnlock()
+	index, ok := m.indexes[key]
+	return uint(index), ok
+}
+
 // Get retrieves the item from the indexed list associated with the
 // key. True will be returned if the value was found, otherwise false
 // will be returned. This operation is guaranteed O(1).
