@@ -182,7 +182,7 @@ var _ = Describe("Indexed Map Tests", func() {
 		index, found := dict.Index("herp")
 
 		// Verify that the item was found
-		Expect(index).Should(Equal(1))
+		Expect(index).Should(Equal(uint(1)))
 		Expect(found).Should(BeTrue())
 	})
 
