@@ -43,6 +43,19 @@ func InnerErrorPrefixSuffixVerifier(prefix string, suffix string) func(error) {
 	}
 }
 
+// InnerGErrorVerifier can be used for the case when the inner error is a GError
+func InnerGErrorVerifier(env string, pkg string, file string, class string,
+	function string, line int, innerVerifier func(error), message string,
+	msgParts ...string) func(error) {
+	return func(err error) {
+		Expect(err).Should(HaveOccurred())
+		gerr, ok := err.(*utils.GError)
+		Expect(ok).Should(BeTrue())
+		ErrorVerifier(env, pkg, file, class, function, line, innerVerifier,
+			message, msgParts...)(gerr)
+	}
+}
+
 // ErrorVerifier verifies the fields on a backend Error
 func ErrorVerifier(env string, pkg string, file string, class string,
 	function string, line int, innerVerifier func(error), message string,
