@@ -107,7 +107,7 @@ var _ = Describe("Logger Tests", func() {
 		// Finally, extract the data from the buffer and verify the value of the message
 		data := string(buf.Bytes())
 		Expect(data).Should(HaveSuffix("[test] utils.glob. (/goutils/utils/logger_test.go 104): " +
-			"Test message. String parameter: derp, Integer parameter: 42, Inner: Test error.\n"))
+			"Test message. String parameter: derp, Integer parameter: 42, Inner:\n\tTest error.\n"))
 
 		// Verify the data in the error
 		Expect(err.Class).Should(Equal("glob"))
@@ -121,7 +121,7 @@ var _ = Describe("Logger Tests", func() {
 		Expect(err.Message).Should(Equal("Test message. String parameter: derp, Integer parameter: 42"))
 		Expect(err.Package).Should(Equal("utils"))
 		Expect(err.Error()).Should(HaveSuffix("[test] utils.glob. (/goutils/utils/logger_test.go 104): " +
-			"Test message. String parameter: derp, Integer parameter: 42, Inner: Test error."))
+			"Test message. String parameter: derp, Integer parameter: 42, Inner:\n\tTest error."))
 	})
 
 	// Tests that logging an error works as expected
@@ -142,7 +142,7 @@ var _ = Describe("Logger Tests", func() {
 		// Finally, extract the data from the buffer and verify the value of the message
 		data := string(buf.Bytes())
 		Expect(data).Should(HaveSuffix("[test] utils.glob. (/goutils/utils/logger_test.go 139): " +
-			"Test message. String parameter: derp, Integer parameter: 42, Inner: Test error.\n"))
+			"Test message. String parameter: derp, Integer parameter: 42, Inner:\n\tTest error.\n"))
 
 		// Verify the data in the error
 		Expect(err.Class).Should(Equal("glob"))
@@ -156,7 +156,7 @@ var _ = Describe("Logger Tests", func() {
 		Expect(err.Message).Should(Equal("Test message. String parameter: derp, Integer parameter: 42"))
 		Expect(err.Package).Should(Equal("utils"))
 		Expect(err.Error()).Should(HaveSuffix("[test] utils.glob. (/goutils/utils/logger_test.go 139): " +
-			"Test message. String parameter: derp, Integer parameter: 42, Inner: Test error."))
+			"Test message. String parameter: derp, Integer parameter: 42, Inner:\n\tTest error."))
 	})
 
 	// Tests that the Discard function produces no data
@@ -191,6 +191,6 @@ var _ = Describe("Logger Tests", func() {
 		Expect(err.Message).Should(Equal("Test message. String parameter: derp, Integer parameter: 42"))
 		Expect(err.Package).Should(Equal("utils"))
 		Expect(err.Error()).Should(HaveSuffix("[test] utils.glob. (/goutils/utils/logger_test.go 178): " +
-			"Test message. String parameter: derp, Integer parameter: 42, Inner: Test error."))
+			"Test message. String parameter: derp, Integer parameter: 42, Inner:\n\tTest error."))
 	})
 })

@@ -63,11 +63,11 @@ var _ = Describe("Common Tests", func() {
 			"/goutils/sql/orm/common.go", "", "RunQuery", 32, testutils.InnerErrorVerifier("QueryContext failed"),
 			"Failed to query orm.testType data from \"test_table\"", "[test] orm.RunQuery "+
 				"(/goutils/sql/orm/common.go 32): Failed to query orm.testType data from \"test_table\", "+
-				"Inner: QueryContext failed.")),
+				"Inner:\n\tQueryContext failed.")),
 		Entry("ReadRows fails - Error", false, true, testutils.ErrorVerifier("test", "orm",
 			"/goutils/sql/orm/common.go", "", "RunQuery", 39, testutils.InnerErrorVerifier("Row could not be read, error: Scan failed"),
 			"Failed to read orm.testType data returned from \"test_table\"", "[test] orm.RunQuery (/goutils/sql/orm/common.go 39): "+
-				"Failed to read orm.testType data returned from \"test_table\", Inner: Row could not be read, error: Scan failed.")))
+				"Failed to read orm.testType data returned from \"test_table\", Inner:\n\tRow could not be read, error: Scan failed.")))
 
 })
 

@@ -127,8 +127,11 @@ func (err *GError) Error() string {
 	// Finally, if the inner error isn't nil then add it to the error
 	// message; otherwise, just add a period
 	if err.Inner != nil {
-		baseMsg += fmt.Sprintf(", Inner: %v.", err.Inner)
-	} else {
+		baseMsg += fmt.Sprintf(", Inner:\n\t%v", err.Inner)
+	}
+
+	// If our message doesn't end with a period then add one
+	if baseMsg[len(baseMsg)-1] != '.' {
 		baseMsg += "."
 	}
 

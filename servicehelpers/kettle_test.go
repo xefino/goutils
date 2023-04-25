@@ -50,7 +50,7 @@ var _ = Describe("Kettle Context Tests", func() {
 		Expect(actual.Message).Should(Equal("Failed to create new Kettle instance"))
 		Expect(actual.Package).Should(Equal("servicehelpers"))
 		Expect(actual.Error()).Should(HaveSuffix("[test] servicehelpers.NewKettleContext (/goutils/servicehelpers/kettle.go 58): " +
-			"Failed to create new Kettle instance, Inner: NewRedisPool failed: REDIS_HOST not set (host:port)."))
+			"Failed to create new Kettle instance, Inner:\n\tNewRedisPool failed: REDIS_HOST not set (host:port)."))
 	})
 
 	// Tests that the NewKettleContext function works as expected

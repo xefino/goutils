@@ -55,7 +55,7 @@ var _ = Describe("KMS Connection Tests", Ordered, func() {
 			testutils.InnerErrorVerifier("json: error calling MarshalJSON for type policy.Principals: "+
 				"Principal must contain at least one element"), "Failed to convert policy to JSON",
 			"[test] kms.Connection.CreateKey (/goutils/awssvc/kms/conn.go 35): Failed to convert "+
-				"policy to JSON, Inner: json: error calling MarshalJSON for type policy.Principals: "+
+				"policy to JSON, Inner:\n\tjson: error calling MarshalJSON for type policy.Principals: "+
 				"Principal must contain at least one element.")(err.(*utils.GError))
 	})
 
@@ -94,7 +94,7 @@ var _ = Describe("KMS Connection Tests", Ordered, func() {
 				"400, RequestID: , api error ValidationException: KeyUsage ENCRYPT_DECRYPT is not compatible "+
 				"with KeySpec ECC_NIST_P521"), "Failed to create ECC_NIST_P521 (ENCRYPT_DECRYPT) key in KMS",
 			"[test] kms.Connection.CreateKey (/goutils/awssvc/kms/conn.go 49): Failed to create "+
-				"ECC_NIST_P521 (ENCRYPT_DECRYPT) key in KMS, Inner: operation error KMS: CreateKey, "+
+				"ECC_NIST_P521 (ENCRYPT_DECRYPT) key in KMS, Inner:\n\toperation error KMS: CreateKey, "+
 				"https response error StatusCode: 400, RequestID: , api error ValidationException: "+
 				"KeyUsage ENCRYPT_DECRYPT is not compatible with KeySpec ECC_NIST_P521.")(err.(*utils.GError))
 	})

@@ -42,7 +42,7 @@ var _ = Describe("Transcoding Tests", func() {
 				"DatabaseConnection", "MarshalMap", 17, testutils.InnerErrorVerifier("failData cannot be marshalled"),
 				"Failed to marshal *dynamodb.failData to DynamoDB attributes", "[test] dynamodb.DatabaseConnection.MarshalMap "+
 					"(/goutils/awssvc/dynamodb/transcoding.go 17): Failed to marshal *dynamodb.failData "+
-					"to DynamoDB attributes, Inner: failData cannot be marshalled.")(err.(*utils.GError))
+					"to DynamoDB attributes, Inner:\n\tfailData cannot be marshalled.")(err.(*utils.GError))
 		})
 
 		// Tests that, if the call to MarshalMapWithOptions does not fail, then the MarshalMap function
@@ -91,7 +91,7 @@ var _ = Describe("Transcoding Tests", func() {
 				"UnmarshalMap", 27, testutils.InnerErrorVerifier("strconv.ParseInt: parsing \"derp\": invalid syntax"),
 				"Failed to unmarshal DynamoDB response to *dynamodb.testData", "[test] dynamodb.DatabaseConnection.UnmarshalMap "+
 					"(/goutils/awssvc/dynamodb/transcoding.go 27): Failed to unmarshal DynamoDB response "+
-					"to *dynamodb.testData, Inner: strconv.ParseInt: parsing \"derp\": invalid syntax.")(err.(*utils.GError))
+					"to *dynamodb.testData, Inner:\n\tstrconv.ParseInt: parsing \"derp\": invalid syntax.")(err.(*utils.GError))
 		})
 
 		// Tests that, if the call to UnmarshalMapWithOptions does not fail, then the UnmarshalMap function
@@ -144,7 +144,7 @@ var _ = Describe("Transcoding Tests", func() {
 				"UnmarshalList", 37, testutils.InnerErrorVerifier("strconv.ParseInt: parsing \"derp\": invalid syntax"),
 				"Failed to unmarshal DynamoDB response to *[]*dynamodb.testData", "[test] dynamodb.DatabaseConnection.UnmarshalList "+
 					"(/goutils/awssvc/dynamodb/transcoding.go 37): Failed to unmarshal DynamoDB response to "+
-					"*[]*dynamodb.testData, Inner: strconv.ParseInt: parsing \"derp\": invalid syntax.")(err.(*utils.GError))
+					"*[]*dynamodb.testData, Inner:\n\tstrconv.ParseInt: parsing \"derp\": invalid syntax.")(err.(*utils.GError))
 		})
 
 		// Tests that, if the call to UnmarshalListOfMapsWithOptions does not fail, then the UnmarshalList

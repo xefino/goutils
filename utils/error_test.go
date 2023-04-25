@@ -77,13 +77,13 @@ var _ = Describe("Errors Tests", func() {
 		Entry("Generated from class, Inner error - Generated", (&errorGenerator{value: "herp"}).generate,
 			"errorGenerator", 26, true, "derped", "generated from class, ID: 42, Value: herp",
 			"[test] utils.errorGenerator.generate (/goutils/utils/error_test.go 26): generated from class, "+
-				"ID: 42, Value: herp, Inner: derped."),
+				"ID: 42, Value: herp, Inner:\n\tderped."),
 		Entry("Generated from global scope, No inner error - Generated", generate, "", 40, false, "",
 			"generated from func, ID: 42, Value: herp", "[test] utils.generate (/goutils/utils/error_test.go 40): "+
 				"generated from func, ID: 42, Value: herp."),
 		Entry("Generated from global scope, Inner error - Generated", generate, "", 40, true, "derped",
 			"generated from func, ID: 42, Value: herp", "[test] utils.generate (/goutils/utils/error_test.go 40): "+
-				"generated from func, ID: 42, Value: herp, Inner: derped."))
+				"generated from func, ID: 42, Value: herp, Inner:\n\tderped."))
 
 	// Test that calling FromErrors with an empty list will return no error
 	It("FromErrors - No errors - Nil returned", func() {

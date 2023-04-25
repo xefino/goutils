@@ -375,7 +375,7 @@ var _ = Describe("Query Tests", func() {
 		// Now, attempt to create and run the query; this should not fail and should return data
 		query := NewQuery().Select("key", "value").From("test_table").Where(Or, Like("key", "key_", true),
 			Between("value", "value1", false, "value2", false)).OrderBy("key").GroupBy("key", "value").
-			Limit(1000, true).Offset(0, true)
+			Having(And).Limit(1000, true).Offset(0, true)
 		data, err := RunQuery[testType](context.Background(), query, db, logger)
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 
