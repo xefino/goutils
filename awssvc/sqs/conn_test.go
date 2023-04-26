@@ -156,9 +156,10 @@ var _ = Describe("SQS Connection Tests", Ordered, func() {
 		// Finally, verify the error we received
 		Expect(output).Should(BeNil())
 		testutils.ErrorVerifier("test", "sqs", "/goutils/awssvc/sqs/conn.go", "SQSConnection", "SendMessage", 56,
-			testutils.InnerErrorVerifier("json: unsupported type: chan error"), "Failed to convert payload to JSON",
-			"[test] sqs.SQSConnection.SendMessage (/goutils/awssvc/sqs/conn.go 56): Failed to convert payload to JSON, "+
-				"Inner:\n\tjson: unsupported type: chan error.")(err.(*utils.GError))
+			testutils.InnerErrorVerifier("json: unsupported type: chan error"),
+			"Failed to convert payload to JSON",
+			"[test] sqs.SQSConnection.SendMessage (/goutils/awssvc/sqs/conn.go 56): Failed to convert "+
+				"payload to JSON, Inner:\n\tjson: unsupported type: chan error.")(err.(*utils.GError))
 	})
 
 	// Tests that, if the the inner call to SendMessage fails, then calling SendMessage will result in an error
@@ -189,12 +190,13 @@ var _ = Describe("SQS Connection Tests", Ordered, func() {
 		testutils.ErrorVerifier("test", "sqs", "/goutils/awssvc/sqs/conn.go", "SQSConnection", "SendMessage", 74,
 			testutils.InnerErrorVerifier("operation error SQS: SendMessage, https response error StatusCode: "+
 				"400, RequestID: 00000000-0000-0000-0000-000000000000, api error AWS.SimpleQueueService."+
-				"NonExistentQueue: The specified queue does not exist for this wsdl version."), "Failed "+
-				"to send SQS message to \"fail-queue\"", "[test] sqs.SQSConnection.SendMessage (/goutils/awssvc/sqs/conn.go 74): "+
-				"Failed to send SQS message to \"fail-queue\", Inner:\n\toperation error SQS: SendMessage, "+
-				"https response error StatusCode: 400, RequestID: 00000000-0000-0000-0000-000000000000, "+
-				"api error AWS.SimpleQueueService.NonExistentQueue: The specified queue does not exist "+
-				"for this wsdl version..")(err.(*utils.GError))
+				"NonExistentQueue: The specified queue does not exist for this wsdl version."),
+			"Failed to send SQS message to \"fail-queue\"",
+			"[test] sqs.SQSConnection.SendMessage (/goutils/awssvc/sqs/conn.go 74): Failed to send SQS "+
+				"message to \"fail-queue\", Inner:\n\toperation error SQS: SendMessage, https response "+
+				"error StatusCode: 400, RequestID: 00000000-0000-0000-0000-000000000000, api error "+
+				"AWS.SimpleQueueService.NonExistentQueue: The specified queue does not exist for this "+
+				"wsdl version.")(err.(*utils.GError))
 	})
 
 	// Tests that, if no errors occur, then calling SendMessage will send the data to SQS to be received
@@ -293,8 +295,8 @@ var _ = Describe("SQS Connection Tests", Ordered, func() {
 		Expect(output.Failed).Should(BeEmpty())
 		Expect(output.Successful).Should(BeEmpty())
 		testutils.ErrorVerifier("test", "sqs", "/goutils/awssvc/sqs/conn.go", "SQSConnection", "SendMessages", 109,
-			testutils.InnerErrorVerifier("json: unsupported type: chan error"), "Failed to send page "+
-				"0 of batched message to \"http://us-east-1.goaws.com:4100/100010001000/test-queue\"",
+			testutils.InnerErrorVerifier("json: unsupported type: chan error"),
+			"Failed to send page 0 of batched message to \"http://us-east-1.goaws.com:4100/100010001000/test-queue\"",
 			"[test] sqs.SQSConnection.SendMessages (/goutils/awssvc/sqs/conn.go 109): Failed to send "+
 				"page 0 of batched message to \"http://us-east-1.goaws.com:4100/100010001000/test-queue\", "+
 				"Inner:\n\tjson: unsupported type: chan error.")(err.(*utils.GError))
@@ -340,14 +342,14 @@ var _ = Describe("SQS Connection Tests", Ordered, func() {
 		Expect(output.Failed).Should(BeEmpty())
 		Expect(output.Successful).Should(BeEmpty())
 		testutils.ErrorVerifier("test", "sqs", "/goutils/awssvc/sqs/conn.go", "SQSConnection", "SendMessages", 109,
-			testutils.InnerErrorVerifier("operation error SQS: SendMessageBatch, https response error StatusCode: "+
-				"400, RequestID: 00000000-0000-0000-0000-000000000000, api error AWS.SimpleQueueService."+
-				"NonExistentQueue: The specified queue does not exist for this wsdl version."), "Failed "+
-				"to send page 0 of batched message to \"fail-queue\"", "[test] sqs.SQSConnection.SendMessages "+
+			testutils.InnerErrorVerifier("operation error SQS: SendMessageBatch, https response error "+
+				"StatusCode: 400, RequestID: 00000000-0000-0000-0000-000000000000, api error AWS.SimpleQueueService."+
+				"NonExistentQueue: The specified queue does not exist for this wsdl version."),
+			"Failed to send page 0 of batched message to \"fail-queue\"", "[test] sqs.SQSConnection.SendMessages "+
 				"(/goutils/awssvc/sqs/conn.go 109): Failed to send page 0 of batched message to \"fail-queue\", "+
 				"Inner:\n\toperation error SQS: SendMessageBatch, https response error StatusCode: 400, "+
 				"RequestID: 00000000-0000-0000-0000-000000000000, api error AWS.SimpleQueueService.NonExistentQueue: "+
-				"The specified queue does not exist for this wsdl version..")(err.(*utils.GError))
+				"The specified queue does not exist for this wsdl version.")(err.(*utils.GError))
 	})
 
 	// Tests that, if no errors occur, then calling SendMessages will send the data to SQS to be received

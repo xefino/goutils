@@ -22,6 +22,7 @@ const (
 type Query struct {
 	fields    []string
 	table     string
+	from      string
 	filter    string
 	having    string
 	groupBy   string
@@ -91,7 +92,7 @@ func (query *Query) String() string {
 	}
 
 	// Finally, add all the various query pieces together and return them
-	return "SELECT " + fields + " FROM " + query.table + where + groupBy + having + orderBy + limit + offset
+	return "SELECT " + fields + " FROM " + query.from + where + groupBy + having + orderBy + limit + offset
 }
 
 // Arguments returns the arguments that should be injected into the Query
@@ -110,13 +111,15 @@ func (query *Query) Select(fields ...string) *Query {
 // can be chained with others
 func (query *Query) From(table string) *Query {
 	query.table = table
+	query.from = table
 	return query
 }
 
 // FromQuery sets the table that the data should be pulled from so that it is the results of an inner query.
 // This function returns the modified query so that it can be chained with others
 func (query *Query) FromQuery(inner *Query) *Query {
-	query.table = "(" + inner.String() + ")"
+	query.table = inner.Source()
+	query.from = "(" + inner.String() + ")"
 	query.arguments = append(query.arguments, inner.arguments...)
 	return query
 }
