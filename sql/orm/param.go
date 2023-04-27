@@ -13,6 +13,23 @@ type Parameter interface {
 	ModifyQuery(*Query) string
 }
 
+// Keyword is a parameter that is an SQL keyword, such as NULL or TRUE
+type Keyword struct {
+	value string
+}
+
+// NewKeyword creates a new keyword parameter from a string value
+func NewKeyword(value string) *Keyword {
+	return &Keyword{
+		value: value,
+	}
+}
+
+// ModifyQuery modifies the query, returning the string value of the parameter.
+func (k *Keyword) ModifyQuery(query *Query) string {
+	return k.value
+}
+
 // Constant contains the data used to serialize a constant parameter in an SQL query
 type Constant struct {
 	value     driver.Value

@@ -110,6 +110,22 @@ var _ = Describe("Where Tests", func() {
 		gomega.Expect(result).Should(gomega.Equal("NOT (value = 'derp')"))
 	})
 
+	// Tests that various unary operator functions work as expected
+	DescribeTable("Unary Operator Function Tests",
+		func(op func(string) WhereClause, resultStr string) {
+
+			// First, create our unary term
+			term := op("value")
+
+			// Next, attempt to modify the query with our where clause
+			result := term.ModifyQuery(NewQuery())
+
+			// Finally, verify the resulting query clause
+			gomega.Expect(result).Should(gomega.Equal(resultStr))
+		},
+		Entry("IsNull - Works", IsNull, "value IS NULL"),
+		Entry("NotNull - Works", NotNull, "value IS NOT NULL"))
+
 	// Test that the various binary operator functions work as expected
 	DescribeTable("Binary Operator Function Tests",
 		func(op func(string, any, bool) WhereClause, isConstant bool, resultStr string) {

@@ -9,7 +9,8 @@ import (
 
 // SQL constants
 const (
-	All = "*"
+	All  = "*"
+	Null = "NULL"
 )
 
 // Constant Boolean connection operations

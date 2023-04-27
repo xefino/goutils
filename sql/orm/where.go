@@ -152,6 +152,16 @@ func Like(field string, value any, constant bool) WhereClause {
 	return NewQueryTerm(field, "LIKE", param(value, constant))
 }
 
+// IsNull creates a new where clause asserting that a field is null
+func IsNull(field string) WhereClause {
+	return NewQueryTerm(field, "IS", NewKeyword(Null))
+}
+
+// NotNull creates a new where clause asserting that a field is not null
+func NotNull(field string) WhereClause {
+	return NewQueryTerm(field, "IS NOT", NewKeyword(Null))
+}
+
 // Between creates a new where clause stating that a field is between two values
 func Between[T any](field string, lower T, lowerConst bool, upper T, upperConst bool) WhereClause {
 	return NewMultiQueryTerm(And, NewQueryTerm(field, ">=", param(lower, lowerConst)),
