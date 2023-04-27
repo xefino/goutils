@@ -209,8 +209,8 @@ github.com/valyala/fasthttp v1.34.0/go.mod h1:epZA5N+7pY6ZaEKRmstzOuYJx9HI8DI1oa
 github.com/valyala/tcplisten v1.0.0/go.mod h1:T0xQ8SeCZGxckz9qRXTfG43PvQ/mcWh7FwZEA7Ioqkc=
 github.com/xefino/protobuf-gen-go v1.3.8 h1:tpKLVraxHcB1ZeYz30mgfdznFKM8DFtYlCOyVfuoQcE=
 github.com/xefino/protobuf-gen-go v1.3.8/go.mod h1:oBDpwM3jgA4tiIOkUvsdYHqwMuo/9RFd7zfavk3P6Do=
-github.com/xefino/quantum-api-go v1.2.29 h1:/dFXr55P2fpwnueYmfL0UAxFq+NgLXjXn15Ghw1qnp4=
-github.com/xefino/quantum-api-go v1.2.29/go.mod h1:t9TBjlfYFnCXfH1iGixb3+hn5a7fIST/sIeiddKiIkQ=
+github.com/xefino/quantum-api-go v1.2.30 h1:z1TMC7UpBYmojsD3ddt8cHvCOU3u0v0xROfvPdVMzxo=
+github.com/xefino/quantum-api-go v1.2.30/go.mod h1:gk9zb2QNhujahWbSR5il/syh8Mi/j0yptfWuNUywBE8=
 github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f/go.mod h1:N2zxlSyiKSe5eX1tZViRH5QA0qijqEDrYZiPEAiq3wU=
 github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415/go.mod h1:GwrjFmJcFw6At/Gs6z4yjiIwzuJ1/+UwLxMQDVQXShQ=
 github.com/xeipuuv/gojsonschema v1.2.0/go.mod h1:anYRn/JVcOK2ZgGU+IjEV4nwlhoK5sQluxsYJ78Id3Y=
